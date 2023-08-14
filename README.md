@@ -7,5 +7,8 @@ tools and functions from matplotlib, seaborn, numpy and other popular python lib
 python3 chromgenomeplot.py -h
 ```
 
+# Dependencies
+coming soon..
+
 ## Description of different functionalities
 coming soon..
