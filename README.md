@@ -6,7 +6,8 @@ tools and functions from matplotlib, seaborn, numpy and other popular python lib
 ```
 python3 chromgenomeplot.py -h
 ```
-The subdirectory ```analyses_scripts/``` should be copied in the same dir as chromgenomeplot.py
+The subdirectory ```analyses_scripts/``` should be copied in the same dir as ```chromgenomeplot.py```.
+
 Depending on the analysis the following input files are required: 1) assembly fasta, 2) sorted BAM file of reads mapped onto the assembly, 3) Results of variant calling in VCF format that includes only SNPs, 4) Genome annotation in BED format. 
 
 
