@@ -6,7 +6,7 @@ tools and functions from matplotlib, seaborn, numpy and other popular python lib
 ```
 python3 chromgenomeplot.py -h
 ```
-The subdirectory analyses-scripts/ should be copied in the same dir as chromgenomeplot.py
+The subdirectory analyses_scripts/ should be copied in the same dir as chromgenomeplot.py
 
 
 # Dependencies
