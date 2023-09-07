@@ -14,12 +14,13 @@ Depending on the analysis the following input files are required: 1) assembly fa
 ## Dependencies
 The following python libraries are required
 ```
-matplotlib
+matplotlib.pyplot
+matplotlib.ticker
 seaborn
 pandas
 ```
 
-In addition samtools should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment.
+In addition ```Samtools``` should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment.
 
 ## Description of different functionalities
 coming soon..
