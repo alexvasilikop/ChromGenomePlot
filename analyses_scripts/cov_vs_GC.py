@@ -3,7 +3,6 @@
 
 from util import samtools_depths_util, chrom_selection
 from cov_depth import Alignment
-from numpy import log
 from feature import Assembly_FASTA
 import matplotlib.pyplot as plt
 import seaborn as sns
