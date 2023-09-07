@@ -12,7 +12,7 @@ Depending on the analysis the following input files are required: 1) assembly fa
 
 
 ## Dependencies
-The following python libraries are required
+The tool requires installation of python 3. The following python libraries are required
 ```
 matplotlib.pyplot
 matplotlib.ticker
@@ -20,7 +20,14 @@ seaborn
 pandas
 ```
 
-In addition ```Samtools``` should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment.
+In addition ```Samtools``` should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment. It has been tested using the following versions:
+```
+matplotlib                3.5.2
+seaborn                   0.11.2
+numpy                     1.23.1
+pandas                    1.4.3
+samtools                  1.10 (using htslib 1.10.2)
+```
 
 ## Description of different functionalities
 coming soon..
