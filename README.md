@@ -1,4 +1,5 @@
-# ChromGenomePlot
+
+![Alt text](https://github.com/alexvasilikop/ChromGenomePlot/blob/main/chromgenomeplot.svg)
 
 ## Description
 ChromGenomePlot provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes of reference genome assemblies. It is primarily designed for analyzing highly contiguous (few scaffolds) or chromosome-level genome assemblies. It leverages 
