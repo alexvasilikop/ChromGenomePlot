@@ -9,9 +9,8 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 
-# Plots coverage depth and SNP-based heterozygosity along chromosomes based on provided 1) BAM (sorted) and 2) VCF file (from GATK4)
+# Plots coverage depth and SNPs number along chromosomes based on provided 1) BAM (sorted) and 2) VCF file (from GATK4)
 # Plot parameters (such as max. size of chromosomes need to be adjusted if necessary in the Plot Class, see below)
-# The VCF file (output of GATK GenotypeGVCFS) has to be filtered to include only SNP variants (e.g. with GATK SelectVariants) -> further filtering of SNPs is done by the script (depth min. = 20, allellic depth ratio >=0.20 and <=0.80)
 # If depths file has been generated in previous run it is automatically used (samtools depth -> step is skipped)
 
 ###############################################################################################################################
