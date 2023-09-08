@@ -13,10 +13,9 @@ Depending on the analysis the following input files are required: 1) assembly fa
 
 
 ## Dependencies
-The tool requires installation of python 3. The following python libraries are required
+The tool requires installation of python 3. Installation of the following python libraries are required
 ```
-matplotlib.pyplot
-matplotlib.ticker
+matplotlib
 seaborn
 pandas
 ```
