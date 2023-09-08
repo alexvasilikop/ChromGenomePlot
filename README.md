@@ -1,5 +1,3 @@
-# ChromGenomePlot
-
 ![Alt text](https://github.com/alexvasilikop/ChromGenomePlot/blob/main/chromgenomeplot.svg)
 
 ## Description
