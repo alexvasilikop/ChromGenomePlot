@@ -11,7 +11,7 @@ def starting_message():
     print(2*"\n"+"######################################################################################")
     print("#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#")
     print("#<                                                                                  >#")
-    print("#<     ChromGENOMEPlot: analysis and visualization of diverse genomic features      >#")
+    print("#<     ChromGenomePlot: analysis and visualization of diverse genomic features      >#")
     print("#<             along the chromosomes of reference genome assemblies                 >#")
     print("#<                                                                                  >#")
     print("#<                        email: alexvasilikop@gmail.com                            >#")
