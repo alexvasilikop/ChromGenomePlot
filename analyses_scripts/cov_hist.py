@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#Generates coverage depth histogramplot (per base coverage depth histogram) from an input BAM file (sorted).
+#Generates coverage depth histogram plot (per base coverage depth histogram) from an input BAM file (sorted).
 #It requires that samtools is in the path. If depths.txt file is already in the directory this is used by default.
 
 import subprocess
