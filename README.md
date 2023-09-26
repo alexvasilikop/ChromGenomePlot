@@ -11,7 +11,7 @@ python3 chromgenomeplot.py -h
 ```
 The subdirectory ```analyses_scripts/``` should be copied in the same dir as ```chromgenomeplot.py```.
 
-Depending on the analysis the following input files are required: 1) assembly fasta, 2) sorted BAM file of reads mapped onto the assembly, 3) Results of variant calling in VCF format that includes only SNPs, 4) Genome feature annotation in BED format (e.g., genes or repeats). 
+Depending on the analysis the following input files are required: 1) assembly fasta, 2) sorted BAM file of reads mapped onto the assembly, 3) Results of variant calling in VCF format that includes only SNPs (it should be in the format produced by GATK), 4) Genome feature annotation in BED format (e.g., genes or repeats). 
 
 
 ## Dependencies
