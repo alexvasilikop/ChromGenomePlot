@@ -65,7 +65,6 @@ class Assembly_FASTA_ALLELE_FREQ(Assembly_FASTA):
 					self.chromosomes_windows_allelic_freq[chromosome][p] = (average_allelic_freq)
 					start_window= p+1
 					count_bases_window = 0
-					
 
 				#if reaching the end of chromosome before the windowstep is completed
 				elif p == length_chromosome-1:
