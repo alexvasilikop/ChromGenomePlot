@@ -16,7 +16,7 @@ def normalize(values_coverage_chromosome, max_plot, average_depth, no_avg_cov):
 
 	else:
 
-		#if --no_avg_cov is activated then the coverage is not normalized according to the average across all chromosomes and only based on the max_snp or max_het value.
+		#if --no_avg_cov is activated then the coverage is not normalized according to the average across all chromosomes and only based on the max_snp or max_het value 5to fit in the plot).
 		#This could be a problem if on some chromosomes you have regions with outlier coverage depth (e.g., due to repetitive elements)
 
 		norm_max=[]
