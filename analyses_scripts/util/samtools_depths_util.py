@@ -15,6 +15,7 @@ def run_samtools(file, depths_file) :
 ##############################################################################################
 def read_depths_file_util(depths_file, depth_total, selected_chrom_to_use, chromosomes_and_depths, genome_size):
 	#all chromosomes
+	#mthis method is faster than using pandas to read in a dataframe
 	if selected_chrom_to_use==0:
 		with open(depths_file, "r") as fh_in:
 			for line in fh_in:
