@@ -59,7 +59,7 @@ def main():
     analyses_types = ("cov_hist", "cov_depth", "cov_depth_region", "feature", "feat_2_feat", \
                       "cov_het", "cov_snps", "cov_snps_number", "snps_number", "snps_percent", \
                       "snps_het", "allele_freq_chrom", "allele_freq_dist", "allele_freq_d_sel", \
-                      "GC_2_feat", "GC_content", "cov_vs_GC", "cov_het_val_windows")
+                      "GC_2_feat", "GC_content", "cov_vs_GC")
 
     #check analyses scripts directory
     check_scripts_dir()
@@ -93,7 +93,6 @@ def main():
             print(f"\t {analyses_types[14]:<20} Plot GC vs feature content along the chromosomes of the reference genome\n")
             print(f"\t {analyses_types[15]:<20} Plot GC content content along the chromosomes of the reference genome\n")
             print(f"\t {analyses_types[16]:<20} Plot GC content versus coverage depth of the chromosomes in the reference genome\n")
-            print(f"\t {analyses_types[17]:<20} Prints individual heterozygosity values for each window in a txt file (e.g., to be used for generating boxplots)\n")
             
     else:
 
