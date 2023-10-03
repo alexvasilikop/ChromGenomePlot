@@ -93,7 +93,7 @@ def main():
             print(f"\t {analyses_types[14]:<20} Plot GC vs feature content along the chromosomes of the reference genome\n")
             print(f"\t {analyses_types[15]:<20} Plot GC content content along the chromosomes of the reference genome\n")
             print(f"\t {analyses_types[16]:<20} Plot GC content versus coverage depth of the chromosomes in the reference genome\n")
-            print(f"\t {analyses_types[17]:<20} Prints individual heterozygosity values for each window in a txt file (e.g., to be used for generating heteozygosity boxplots)\n")
+            print(f"\t {analyses_types[17]:<20} Prints individual heterozygosity values for each window in a txt file (e.g., to be used for generating boxplots)\n")
             
     else:
 
