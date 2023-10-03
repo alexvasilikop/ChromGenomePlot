@@ -9,7 +9,7 @@ import matplotlib.ticker as mticker
 import seaborn as sns
 import argparse
 
-#Plots a histogram (distribution) of dominant allele frequencies from a VCF file.
+#Plots a histogram (distribution) of dominant/major allele frequencies (MAF spectra) from a VCF file.
 ###############################################################################################################################################################################
 class VCF_AFD(VCF):
 
