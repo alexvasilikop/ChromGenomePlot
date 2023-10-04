@@ -91,7 +91,7 @@ def main():
             print(f"\t {analyses_types[12]:<20} Make histogram (distribution plot) of dominant allele frequencies using a set of SNPs from a VCF file\n")
             print(f"\t {analyses_types[13]:<20} Make histogram (distribution plot) of dominant allele frequencies for a specified region of a selected chromosome\n")
             print(f"\t {analyses_types[14]:<20} Plot GC vs feature content along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[15]:<20} Plot GC content content along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[15]:<20} Plot GC content along the chromosomes of the reference genome\n")
             print(f"\t {analyses_types[16]:<20} Plot GC content versus coverage depth of the chromosomes in the reference genome\n")
             
     else:
