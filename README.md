@@ -2,7 +2,7 @@
 ![Alt text](https://github.com/alexvasilikop/ChromGenomePlot/blob/main/chromgenomeplot.svg)
 
 ## Description
-ChromGenomePlot provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes of reference genome assemblies. It is primarily designed for analyzing highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
+ChromGenomePlot provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes (or scaffolds) of reference genome assemblies. It is primarily designed for analyzing highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
 tools and functions from matplotlib, seaborn, pandas and other popular python libraries. It can plot and calculate overall percent heterozygosity, major allele frequency along chromosomes using windows of specified size (kb), major/minor allele frequency spectra (MAF). It can also plot coverage depth, GC content and other feature content based on .bed files along the chromosomes based on chromosome windows of specified length.
 
 ## Usage
