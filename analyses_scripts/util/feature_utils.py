@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import re
+from Bio import SeqIO
 
 ######################################################################################################
 def bed_read_util(filename, chrom_features, selected_chrom_to_use):
