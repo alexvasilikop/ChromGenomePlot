@@ -20,6 +20,7 @@ The tool requires installation of python 3. Installation of the following python
 matplotlib
 seaborn
 pandas
+Biopython
 ```
 
 In addition ```Samtools``` should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment. It has been tested using the following versions:
