@@ -35,27 +35,15 @@ def bed_read_util(filename, chrom_features, selected_chrom_to_use):
 def fasta_read_util(filename, scaffolds_seqs, selected_chrom_to_use):
 
 	if selected_chrom_to_use==0:
-		header=""
-		with open(filename, "r") as fh_in:
-			for line in fh_in:
-				line=line.rstrip("\n")
-
-				if line.startswith(">"):
-					header=re.sub(">","",line)
-				else:
-					scaffolds_seqs[header]+=line
+		with open(filename) as fh_in:
+			for record in SeqIO.parse(fh_in, "fasta"):
+				scaffolds_seqs[record.id]=record.seq
 
 	#keep only selected chromosomes
 	else:
-		header=""
-		with open(filename, "r") as fh_in:
-			for line in fh_in:
-				line=line.rstrip("\n")
-
-				if line.startswith(">"):
-					header=re.sub(">","",line)
-				else:
-					scaffolds_seqs[header]+=line
+		with open(filename) as fh_in:
+			for record in SeqIO.parse(fh_in, "fasta"):
+				scaffolds_seqs[record.id]=record.seq
 
 		#keep only selected chromosomes
 		try:
@@ -67,6 +55,7 @@ def fasta_read_util(filename, scaffolds_seqs, selected_chrom_to_use):
 			print("Key {i} Not In FASTA")
 
 	return scaffolds_seqs
+
 
 #########################################################################################
 def get_max_length(scaffolds_seqs):
