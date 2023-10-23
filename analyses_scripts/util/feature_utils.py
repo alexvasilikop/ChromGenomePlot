@@ -57,7 +57,6 @@ def fasta_read_util(filename, scaffolds_seqs, selected_chrom_to_use):
 
 	return scaffolds_seqs
 
-
 #########################################################################################
 def get_max_length(scaffolds_seqs):
 
