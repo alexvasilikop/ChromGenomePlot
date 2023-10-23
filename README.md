@@ -30,6 +30,7 @@ seaborn                   0.11.2
 numpy                     1.23.1
 pandas                    1.4.3
 samtools                  1.10 (using htslib 1.10.2)
+Biopython                 1.78
 ```
 
 ## Description of different functionalities
