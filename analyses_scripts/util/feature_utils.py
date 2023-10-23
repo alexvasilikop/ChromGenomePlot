@@ -3,6 +3,13 @@
 import re
 from Bio import SeqIO
 
+def solve_overlapping(positions_dict):
+
+	#solve overlapping bed annotations
+	for c in positions_dict.keys():
+		positions_dict[c]=list(set(positions_dict[c]))
+	return positions_dict
+
 ######################################################################################################
 def bed_read_util(filename, chrom_features, selected_chrom_to_use):
 
@@ -17,6 +24,8 @@ def bed_read_util(filename, chrom_features, selected_chrom_to_use):
 				positions = [x for x in range(int(elements[1]), int(elements[2]))]
 				chrom_features[elements[0]].extend(positions)
 
+		chrom_features=solve_overlapping(chrom_features)
+
 	#selection
 	else:
 		with open(filename, "r") as fh_in:
@@ -29,6 +38,8 @@ def bed_read_util(filename, chrom_features, selected_chrom_to_use):
 					#assumes 0-based, half-open [start-1, end) extended BED-formatted data.
 					positions = [x for x in range(int(elements[1]), int(elements[2]))]
 					chrom_features[elements[0]].extend(positions)
+
+		chrom_features=solve_overlapping(chrom_features)
 
 	return chrom_features
 
