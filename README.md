@@ -30,7 +30,7 @@ seaborn                   0.11.2
 numpy                     1.23.1
 pandas                    1.4.3
 SAMtools                  1.10 (using htslib 1.10.2)
-BEDTools				          2.27.1
+BEDTools                  2.27.1
 Biopython                 1.78
 ```
 
