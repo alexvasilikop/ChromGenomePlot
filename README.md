@@ -30,6 +30,7 @@ The tool requires installation of python 3. Installation of the following python
 matplotlib
 seaborn
 pandas
+numpy
 Biopython
 ```
 
