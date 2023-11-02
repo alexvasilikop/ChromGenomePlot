@@ -33,7 +33,7 @@ pandas
 Biopython
 ```
 
-In addition ```SAMtools``` and ```BEDTools```should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment. The pipeline has been tested using the following software and package versions:
+In addition ```SAMtools``` and/or ```BEDTools```should be installed and on path (depending on which analyses are performed). To control the versions of libraries and software, it is recommended to install them within a conda envronment. The pipeline has been tested using the following software and package versions:
 ```
 matplotlib                3.5.2
 seaborn                   0.11.2
