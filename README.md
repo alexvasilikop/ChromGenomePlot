@@ -1,5 +1,5 @@
 
-![Alt text](https://github.com/alexvasilikop/ChromGenomePlot/blob/main/chromgenomeplot.svg)
+![Alt text][(https://github.com/alexvasilikop/ChromGenomePlot/blob/main/chromgenomeplot.svg)]
 
 ## Description
 ChromGenomePlot provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes (or scaffolds) of reference genome assemblies. It is primarily designed for analyzing highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
@@ -30,7 +30,7 @@ seaborn                   0.11.2
 numpy                     1.23.1
 pandas                    1.4.3
 SAMtools                  1.10 (using htslib 1.10.2)
-BEDTools				  2.27.1
+BEDTools				          2.27.1
 Biopython                 1.78
 ```
 
