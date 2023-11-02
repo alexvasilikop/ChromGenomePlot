@@ -7,6 +7,8 @@ tools and functions from matplotlib, seaborn, pandas, numpy and other popular py
 
 ## Usage
 ```
+git clone https://github.com/alexvasilikop/ChromGenomePlot.git
+cd ChromGenomePlot/
 python3 chromgenomeplot.py -h
 ```
 The subdirectory ```analyses_scripts/``` and the ```chromgenomeplot.py``` script should be in the current working directory (where the analysis is run). The script looks for the presence of the analysis scripts subdirectory in the current working directory and throws an error if it does not find it.
