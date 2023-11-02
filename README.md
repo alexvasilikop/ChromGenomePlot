@@ -13,8 +13,16 @@ python3 chromgenomeplot.py -h
 ```
 The subdirectory ```analyses_scripts/``` and the ```chromgenomeplot.py``` script should be in the current working directory (where the analysis is run). The script looks for the presence of the analysis scripts subdirectory in the current working directory and throws an error if it does not find it.
 
-Depending on the analysis the following input files are required: 1) assembly fasta, 2) sorted BAM file of reads mapped onto the assembly, 3) Results of variant calling in VCF format that includes only SNPs (it should be in the format produced by GATK), 4) Genome feature annotation in BED format (e.g., genes or repeats). 
+Depending on the analysis the following input files are required: 1) assembly fasta, 2) sorted BAM file of reads mapped onto the assembly, 3) Results of variant calling in VCF format that includes only SNPs (it should be in the format produced by GATK), 4) Genome feature annotation in CHROM coordinate format (e.g., genes or repeats). The CHROM format requires 3 columns and is 1-based-closed set of feature coordinates i.e., ```[start-pos, end-position]```. This in contrast to BED file which is zero-based open-end ```[start, end)```. It is better that the coordinates are sorted according to their start position The chrom file can be extracted from a GFF3 file by running:
+```
+cut -f1,4,5
 
+Chrom_1  1  100
+Chrom_2  500  800
+Chrom_2  550  650
+Chrom_3  1500  1550
+```
+Each line represents the coordinates of a different feature (e.g., different genes)
 
 ## Dependencies
 The tool requires installation of python 3. Installation of the following python libraries are required
