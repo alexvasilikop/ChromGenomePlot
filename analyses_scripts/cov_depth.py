@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import os
 import argparse
 
-# Plots coverage along chromosomes (all or selection). Window size is given as an argument. Input is a provided sorted BAM file
+# Plots coverage along chromosomes (all or selection). Window size is given as an argument. Input is a sorted BAM file
 ##############################################################################################################################
 class Alignment():
 
@@ -35,8 +35,8 @@ class Alignment():
 		depths_file="depths.txt"
 
 		if os.path.isfile(depths_file):
-			print("Found existing depths file! Samtools depth function will be skipped..")
-			print("Using previously inferred depths.txt file..")
+			print("Found existing depths file! SAMtools depth function will be skipped...")
+			print("Using previously inferred depths.txt file...")
 			self.read_depths_file(depths_file, selected_chrom_to_use)
 
 		else:
@@ -46,7 +46,7 @@ class Alignment():
 
 	def get_average_coverages_chromosomes(self, bin_size):
 
-		windowstep= bin_size
+		windowstep=bin_size
 
 		for chromosome in self.chromosomes_and_depths.keys():
 
@@ -86,6 +86,7 @@ class Plot():
 
 	def plot_coverages_chromosomes(self, species, chromosomes_windows_depths, chrom_lengths, no_fill):
 
+		plt.rcParams["font.family"]= "Arial"
 		fig, axs = plt.subplots(nrows=len(chromosomes_windows_depths), ncols=1, figsize=(10,12), sharey=True, sharex=True, tight_layout=True)
 		no=0
 
@@ -134,14 +135,14 @@ class Plot():
 def main():
 
 	print("\n########################################################################################################################")
-	print("Estimating coverage depth for each window and generating coverage plots along the chromosomes of the reference genome...")
+	print("Estimating coverage depth for each chromosome window and plotting coverage depth along the chromosomes of the reference genome...")
 	print("##########################################################################################################################\n")
 
-	parser=argparse.ArgumentParser(description="Plot coverage depth along chromosomes from sorted BAM file. Requires samtools on path.")
-	parser.add_argument("in_alignment", help="Genome-read alignment file in BAM format (sorted)")
-	parser.add_argument("out_plot", help="Output plot")
-	parser.add_argument("bin_size", help="Size of bins (in bp) for coverage plot. Average coverage is plotted for each bin")
-	parser.add_argument("species", help="Species name/library for title of the plot")
+	parser=argparse.ArgumentParser(description="Plot coverage depth along chromosomes from sorted BAM file. Requires SAMtools on path.")
+	parser.add_argument("in_alignment", help="Genome alignment file in BAM format (sorted)")
+	parser.add_argument("out_plot", help="Output plot with suffix (e.g., *.png, *.svg)")
+	parser.add_argument("bin_size", help="Size of bins (bp) for coverage depth plot. Average coverage depth is plotted for each bin")
+	parser.add_argument("species", help="Species name or library for the title of the plot")
 	parser.add_argument('-sel_chrom', action='store', help="List of selected chromosomes to use (separated by \",\" without spaces, e.g.: \"chrom_1,chrom_2\" )")
 	parser.add_argument('--no_fill', action='store_true', help="Use this flag to indicate no color filling between the lineplot and the x axis")
 

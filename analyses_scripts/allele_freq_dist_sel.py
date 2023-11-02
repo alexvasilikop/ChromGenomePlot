@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import argparse
 
-# Checks for potential local variation in dominant allele frequencies
-# Plots 2 distributions on the same plot: 1) Dominant allele frequency distribution when considering entire genome and
-# 2) of a specified region. 
+# Checks for potential local variation in dominant allele frequencies (as signal for local aneuploidy)
+# Plots 2 distributions on the same figure: 1) Dominant allele frequency distribution when considering entire genome and
+# 2) when considering only a specified region a specified region. 
 
 ##############################################################################################################################################################
 def allelic_freqs_chrom_sel(positions_allelic_freqs, chrom, start, end, bin_size):
@@ -72,9 +72,18 @@ class VCF_AFD_SEL(VCF_AFD):
 				else:
 					self.no_snps_vcf+=1
 					self.heterozygous_snps+=1
-					ad1= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[0])
-					ad2= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[1])
+					
+					if "/" in self.genotype_info_chrom_positions[snp][2][0]:
+						allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[0])
+						allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[1])
 
+					elif "|" in self.genotype_info_chrom_positions[snp][2][0]:
+						allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[0])
+						allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[1])
+
+					ad1= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_1_number])
+					ad2= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_2_number])
+					
 					#Filter based on depth statistics (disable if --no_snp_filter flag is turned on)
 					if not no_snp_filter:
 						if snp_utilities.check_depth_criteria_het(ad1, ad2):
@@ -120,6 +129,8 @@ class Plot():
 
 	def plot_allelic_depth_distribution(self, out_plot, freqs_all, freqs_chrom_sel, bins, bin_size, chromosome, species):
 
+		plt.rcParams["font.family"]= "Arial"
+
 		df_freqs_all        = pd.DataFrame(freqs_all, columns = ["Frequency of dominant allele - full chromosomes"])
 		df_freqs_chrom_sel = pd.DataFrame(freqs_chrom_sel, columns = ["Frequency of dominant allele - selected chromosome region"])
 
@@ -148,7 +159,7 @@ def main():
 	print("######################################################################################################\n")
 
 
-	parser=argparse.ArgumentParser(description="Plot dominant allele frequency distribution for 1) the whome genome and 2) only for selected region.")
+	parser=argparse.ArgumentParser(description="Plot dominant allele frequency distribution for 1) the whome genome and 2) only for selected region")
 	parser.add_argument("in_vcf", help="VCF output file of GATK that has been filtered to contain only SNPs. It may contain calls for multiple samples (each on different column).")
 	parser.add_argument("column_sample_in_vcf", help="Column no. of genotype info for sample in VCF (starting from 0). Assumes the following format: GT:AD:DP (e.g. 0/1:12,6:18)")
 	parser.add_argument("out_plot", help="Output plot name with dominant allele frequency distributions.")
@@ -160,7 +171,7 @@ def main():
 	parser.add_argument("species", help="Species name/sequencing library for title of the plot")
 	parser.add_argument('--no_snp_filter', action='store_true', help="Use this flag if you don't want to filter the SNPs based on total allelic depth for position and allelic depth ratio (heterozygous SNPs)")
 
-	parser.usage='python3 chromgenomeplot.py allele_freq_chrom_sel [positional arguments]' 
+	parser.usage='python3 chromgenomeplot.py allele_freq_dist_sel [positional arguments]' 
 
 	#Parsing args
 	args=parser.parse_args()
@@ -197,7 +208,6 @@ def main():
 	print("All done!")
 
 ########################################################################################################################################################################
-
 if __name__ == '__main__':
 	main()
 

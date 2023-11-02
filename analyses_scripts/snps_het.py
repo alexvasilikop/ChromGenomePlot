@@ -2,26 +2,20 @@
 # -*- coding: utf-8 -*-
 
 from cov_het import VCF
-from feature import Assembly_FASTA
-from snps_number import Plot_SNP_NUMBER
+from snps_percent import Assembly_FASTA_SNP_PERCENT, Plot_SNP_PERCENT
 from util import chrom_selection, snp_utilities, feature_utils
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import numpy as np
 import argparse
 import os
 
-# Plots snp number for windows along the selected chromosomes
-###############################################################################################################################
-class Assembly_FASTA_SNP_NUMBER(Assembly_FASTA):
-	'''
-	Same methods as in feature.py script
-	'''
-	pass
-
 ####################################################################################################################################################
-class Plot_SNP_PERCENT(Plot_SNP_NUMBER):
+class Plot_SNP_PERCENT(Plot_SNP_PERCENT):
 
-	def plot_snps_chromosomes(self, snps_chroms, max_len, species, no_fill):
+	def plot_snps_chromosomes(self, snps_chroms, max_len, species, bin_size, no_fill):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(snps_chroms), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
 		title = fig.suptitle('Percentage (%) of heterozygous SNPs along chromosomes'+" - "+species, fontsize=10)
@@ -85,6 +79,7 @@ class Plot_SNP_PERCENT(Plot_SNP_NUMBER):
 		fig.savefig(self.fig_name, bbox_extra_artists=(lgd, title, x_title, y_title), bbox_inches='tight')
 		plt.show()
 
+########################################################################################################################################################################################""
 def main():
 
 	print("\n###############################################################################################################################################")
@@ -118,7 +113,9 @@ def main():
 	print("Filtering SNPs from VCF file...\n")
 	if args.no_snp_filter:
 		print("Filtering of SNPs is disabled...\n")
-	my_vcf.filter_snps(args.no_snp_filter)
+
+	#add 'het' to include only heterozygous SNPs in the calculations
+	my_vcf.filter_snps(args.no_snp_filter, mode="het")
 	print("Total no. of SNPs: "+str(my_vcf.no_snps_vcf))
 	print("Total no. of homozygous SNPs: "+str(my_vcf.homozygous_snps))
 	print("Total no. of heterozygous SNPs: "+str(my_vcf.heterozygous_snps)+"\n")
@@ -126,32 +123,39 @@ def main():
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
-		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
+		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
+		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
 	else:
-		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
 	#Parsing assembly fasta
 	print("Processing Assembly fasta file...\n")
-	my_assembly = Assembly_FASTA_SNP_NUMBER(filename=args.in_assembly)
+	my_assembly = Assembly_FASTA_SNP_PERCENT(filename=args.in_assembly)
 	print("Reading Assembly fasta file...\n")
 	my_assembly.read_fasta(selected_chrom_to_use)
 	print("Finished reading Assembly fasta file...\n"+200*"-"+"\n")
 
 	#Calculates total SNP number per window along the chromosomes
-	print("Extracting total SNP number for windows of "+str(args.bin_size)+"bp...")
-	my_assembly.calculate_average_bed_values_chromosomes(bin_size=int(args.bin_size), feature_1=my_vcf.positions_snps_filtered)
+	print("Extracting average percentage of het. SNPs for windows of "+str(args.bin_size)+" bp...")
+	my_assembly.calculate_average_snp_values_chromosomes(bin_size=int(args.bin_size), snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting)
 	print("Finished processing all files!\n"+200*"-"+"\n")
 		
 	#Make plot SNPS numbers along chromosomes
 	print("Preparing the plot...")
 	my_plot = Plot_SNP_PERCENT(fig_name=args.out_plot)
-	my_plot.plot_snps_chromosomes(snps_chroms=my_assembly.chromosomes_windows, max_len=feature_utils.get_max_length(my_assembly.scaffolds_seqs), species=args.species, no_fill=args.no_fill)
+	my_plot.plot_snps_chromosomes(snps_chroms=my_assembly.chromosomes_windows, \
+								  max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+								  species=args.species, \
+								  bin_size=args.bin_size, \
+								  no_fill=args.no_fill)
 
-	print("Average Heterozygosity (average %  of heterozygous SNPs in windows):")
-	av_het=snp_utilities.average_heterozygosity(snps=my_assembly.chromosomes_windows, uncalled=my_vcf.positions_uncalled_for_plotting, genome_size=sum(len(v) for v in my_assembly.scaffolds_seqs.values()))
+	print("\nHeterozygosity (% of bases with heterozygous SNPs):")
+	av_het=snp_utilities.average_heterozygosity(snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting, genome_size=np.sum([len(v) for v in my_assembly.scaffolds_seqs.values()]))
 	print(f"{av_het:.2f}%")
+
+	print("\nAverage percent heterozygosity (average percent of heterozygous SNPs in chromosome windows):")
+	print(f"{np.mean(snp_utilities.average_no_snps_windows(my_assembly.chromosomes_windows, cov=False)):.2f} %")
 	print("All done!\n"+200*"-"+"\n")
 
 ###############################################

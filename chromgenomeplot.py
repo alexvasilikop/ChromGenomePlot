@@ -56,9 +56,9 @@ def help_individual_analyses(analysis_type):
 ##################################################################################################################################
 def main():
 
-    analyses_types = ("cov_hist", "cov_depth", "cov_depth_region", "feature", "feat_2_feat", \
+    analyses_types = ("cov_hist", "cov_depth", "cov_depth_region", "feature", "feat_2_feat", "feat_3", \
                       "cov_het", "cov_snps", "cov_snps_number", "snps_number", "snps_percent", \
-                      "snps_het", "allele_freq_chrom", "allele_freq_dist", "allele_freq_d_sel", \
+                      "snps_het", "allele_freq_chrom", "allele_freq_dist", "allele_freq_dist_sel", \
                       "GC_2_feat", "GC_content", "cov_vs_GC")
 
     #check analyses scripts directory
@@ -79,20 +79,21 @@ def main():
             print(f"\t {analyses_types[0]:<20} Plot histogram of coverage depth for the reference genome assembly\n")
             print(f"\t {analyses_types[1]:<20} Plot coverage depth along the chromosomes of the reference genome\n")
             print(f"\t {analyses_types[2]:<20} Plot coverage depth of a specific region on a specified chromosome\n")
-            print(f"\t {analyses_types[3]:<20} Plots percent coverage of one genomic feature in each window along chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[4]:<20} Plots percent coverage of two genomic features in each window along chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[5]:<20} Infer average coverage depth and SNP-based heterozygosity (percentage of heterozygous SNPs) and plot along chromosomes\n")
-            print(f"\t {analyses_types[6]:<20} Plot SNP content (percent bases, %) and average depth along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[7]:<20} Plot SNP number and average coverage depth along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[8]:<20} Plot SNP number by chromosome window along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[9]:<20} Plot SNP percentage (% bases covered) by chromosome window along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[10]:<20} Infer SNP-based heterozygosity (% of heterozygous SNPs) and plot along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[11]:<20} Infer dominant allele frequency for chromosome windows and plot it along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[12]:<20} Make histogram (distribution plot) of dominant allele frequencies using a set of SNPs from a VCF file\n")
-            print(f"\t {analyses_types[13]:<20} Make histogram (distribution plot) of dominant allele frequencies for a specified region of a selected chromosome\n")
-            print(f"\t {analyses_types[14]:<20} Plot GC vs feature content along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[15]:<20} Plot GC content along the chromosomes of the reference genome\n")
-            print(f"\t {analyses_types[16]:<20} Plot GC content versus coverage depth of the chromosomes in the reference genome\n")
+            print(f"\t {analyses_types[3]:<20} Plots feature content (% base coverage or number) of one genomic feature in each window along chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[4]:<20} Plots feature content (% base coverage or number) of two genomic features in each window along chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[5]:<20} Plots feature content (% base coverage or number) of three genomic features in each window along chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[6]:<20} Infer average coverage depth and SNP-based heterozygosity (percentage of heterozygous SNPs) and plot along chromosomes\n")
+            print(f"\t {analyses_types[7]:<20} Plot SNP content (% SNPs) and average depth along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[8]:<20} Plot SNP number and average coverage depth along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[9]:<20} Plot SNP number by chromosome window along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[10]:<20} Plot SNP percentage (% bases covered) by chromosome window along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[11]:<20} Infer SNP-based heterozygosity (% of heterozygous SNPs) and plot along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[12]:<20} Infer dominant allele frequency for chromosome windows and plot it along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[13]:<20} Make histogram (distribution plot) of dominant allele frequencies using a set of SNPs from a VCF file\n")
+            print(f"\t {analyses_types[14]:<20} Make histogram (distribution plot) of dominant allele frequencies for a specified region of a selected chromosome\n")
+            print(f"\t {analyses_types[15]:<20} Plot GC vs feature content along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[16]:<20} Plot GC content along the chromosomes of the reference genome\n")
+            print(f"\t {analyses_types[17]:<20} Plot GC content versus coverage depth of the chromosomes in the reference genome\n")
             
     else:
 

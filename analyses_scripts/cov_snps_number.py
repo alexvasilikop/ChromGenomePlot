@@ -6,11 +6,11 @@ from util import samtools_depths_util, chrom_selection, snp_utilities
 from cov_het import BAM_alignment
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import numpy as np
 import argparse
 import os
 
 # Plots coverage depth and SNPs number along chromosomes based on provided 1) BAM (sorted) and 2) VCF file (from GATK4)
-# Plot parameters (such as max. size of chromosomes need to be adjusted if necessary in the Plot Class, see below)
 # If depths file has been generated in previous run it is automatically used (samtools depth -> step is skipped)
 
 ###############################################################################################################################
@@ -53,7 +53,6 @@ class BAM_alignment(BAM_alignment):
 
 	def calculate_average_coverages_snps_chromosomes(self, bin_size, snps, uncalled):
 
-		'''Provide as input window size, snp, and uncalled position dictionaries {chromX: [p1, p2, ..], chromY: [p1, p2, ..]}'''
 		for chromosome in self.chromosomes_and_depths:
 
 			print("Working on chromosome: "+chromosome+" ...")
@@ -62,7 +61,6 @@ class BAM_alignment(BAM_alignment):
 			depth_total_window = 0
 			count_bases_window = 0
 			snps_window = 0
-			uncalled_window = 0
 			self.chromosome_lengths[chromosome] = len(self.chromosomes_and_depths[chromosome])
 
 			for p, d in self.chromosomes_and_depths[chromosome]:
@@ -74,7 +72,6 @@ class BAM_alignment(BAM_alignment):
 
 					#infer percent snps
 					snps_window = snp_utilities.snps_total_window(start_window, p, chromosome, snps)
-					uncalled_window = snp_utilities.uncalled_total_window(start_window, p, chromosome, uncalled)
 					average_depth = int(depth_total_window/bin_size)
 
 					#add depth, snp percent of start position
@@ -104,7 +101,7 @@ class VCF():
 		self.filename = filename
 		self.no_snps_uncalled_vcf = 0
 		self.no_snps_vcf = 0
-		self.no_snps_vcf_filtered = 0
+		self.no_het_snps_vcf_filtered = 0
 		self.genotype_info_chrom_positions= defaultdict(lambda: [])
 		self.positions_uncalled_for_plotting= defaultdict(lambda: [])
 		self.positions_snps_filtered= defaultdict(lambda: [])
@@ -154,13 +151,13 @@ class VCF():
 
 					#Filter based on depth statistics (disable if --no_snp_filter flag is turned on)
 					if not no_snp_filter:
-						if snp_utilities.check_depth_criteria_snp(ad1, ad2):
+						if snp_utilities.check_allelic_depth_criteria(ad1, ad2):
 							self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
-							self.no_snps_vcf_filtered+=1
+							self.no_het_snps_vcf_filtered+=1
 
 					else:
 						self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
-						self.no_snps_vcf_filtered+=1
+						self.no_het_snps_vcf_filtered+=1
 
 			else:
 				#Likely multiallelic sites (should not exist for heterozygosity estimates) -> Double check data come if such positions exist in VCF
@@ -176,6 +173,8 @@ class Plot():
 		self.fig_name=fig_name
 
 	def plot_coverage_heterozygosity_chromosomes(self, snps_and_depths, max_snp_number, average_depth, species, chrom_lengths, no_fill, no_avg_cov):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(snps_and_depths), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
 		title = fig.suptitle('SNP numbers and coverage depth along chromosomes'+" - "+species, fontsize=10)
@@ -275,7 +274,7 @@ def main():
 	parser.add_argument('--no_snp_filter', action='store_true', help="Use this flag if you don't want to filter the SNPs based on total allelic depth for position and allelic depth ratio")
 	parser.add_argument('--no_avg_cov', action='store_true', help="Use this flag if you don't want to normalize the coverage by its average so that it is comparable among chromosomes (coverage is only normalized to the max_snp_number)")
 
-	parser.usage = 'python3 chromgenomeplot.py cov_snps [positional arguments]'
+	parser.usage = 'python3 chromgenomeplot.py cov_snps_number [positional arguments]'
 
 	#Parsing args
 	args = parser.parse_args()
@@ -296,10 +295,10 @@ def main():
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of SNPs that pass the filtering criteria (a) >=20 total depth for position: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
-		print("Percent of SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.no_snps_vcf-my_vcf.no_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100))
+		print("\nTotal no. of SNPs that pass the filtering criteria (a) >=20 total depth for position: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
+		print("Percent of SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.no_snps_vcf-my_vcf.no_het_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100))
 	else:
-		print("No filtering of SNPs performed: {percent_removed: .2f}%  of SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of SNPs performed: {percent_removed: .2f}%  of SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
 	#Processing BAM alignment
@@ -309,7 +308,7 @@ def main():
 	#Read BAM file and calculate per base coverages -> generates depths.txt file
 	print("Running samtools depth on BAM alignment file...\n")
 	my_alignment.read_alignment(selected_chrom_to_use)
-	print("Genome size from depths file (all genome positions in output: samtools depth -aa): "+str(my_alignment.genome_size)+"\n")
+	print("Genome size from depths file: "+str(my_alignment.genome_size)+"\n")
 
 	#Calculates coverages and snps per window along the chromosomes
 	print("Extracting average coverages and SNP numbers for chromosome windows of "+str(args.bin_size)+"bp...\n")
@@ -337,9 +336,9 @@ def main():
 	#Print average SNP number and coverage depth for genome
 	print("\n"+"Average coverage depth:")
 	print(str(int(my_alignment.average_depth))+" X")
-	print("Average number of SNPs per window):")
-	av_snp=snp_utilities.average_snps_window(snps=my_vcf.positions_snps_filtered, windownumber=my_alignment.window_no)
-	print(av_snp)
+
+	print("Average number of SNPs (homozygous + heterozygous) per chromosome window:")
+	print(f"{np.mean(snp_utilities.average_no_snps_windows(my_alignment.chromosomes_windows_depths_snps)):.0f}")
 
 ###############################################
 if __name__ == '__main__':

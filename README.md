@@ -3,7 +3,7 @@
 
 ## Description
 ChromGenomePlot provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes (or scaffolds) of reference genome assemblies. It is primarily designed for analyzing highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
-tools and functions from matplotlib, seaborn, pandas and other popular python libraries. It can plot and calculate overall percent heterozygosity, major allele frequency along chromosomes using windows of specified size (kb), major/minor allele frequency spectra (MAF). It can also plot coverage depth, GC content and other feature content based on supplied BED files (i.e., feature coordinate files) along chromosomes/scaffolds using windows of specified length.
+tools and functions from matplotlib, seaborn, pandas, numpy and other popular python libraries. It can plot and calculate overall percent heterozygosity, major allele frequency along chromosomes using windows of specified size (kb), major allele frequency spectra (MAF). It can also plot coverage depth, GC content and other feature content based on supplied BED files (i.e., feature coordinate files) along chromosomes/scaffolds using windows of specified length.
 
 ## Usage
 ```
@@ -23,13 +23,14 @@ pandas
 Biopython
 ```
 
-In addition ```Samtools``` should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment. It has been tested using the following versions:
+In addition ```SAMtools``` and ```BEDTools```should be installed and on path. To control the versions of libraries and software, it is recommended to install them within a conda envronment. The pipeline has been tested using the following software and package versions:
 ```
 matplotlib                3.5.2
 seaborn                   0.11.2
 numpy                     1.23.1
 pandas                    1.4.3
-samtools                  1.10 (using htslib 1.10.2)
+SAMtools                  1.10 (using htslib 1.10.2)
+BEDTools				  2.27.1
 Biopython                 1.78
 ```
 

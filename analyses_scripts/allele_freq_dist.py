@@ -18,7 +18,7 @@ class VCF_AFD(VCF):
 		self.filename = filename
 		self.no_snps_uncalled_vcf = 0
 		self.no_snps_vcf = 0
-		self.no_snps_vcf_filtered = 0
+		self.no_het_snps_vcf_filtered = 0
 		self.genotype_info_chrom_positions= defaultdict(lambda: [])
 		self.positions_uncalled_for_plotting= defaultdict(lambda: [])
 		self.positions_snps_filtered= []
@@ -48,14 +48,23 @@ class VCF_AFD(VCF):
 				else:
 					self.no_snps_vcf+=1
 					self.heterozygous_snps+=1
-					ad1= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[0])
-					ad2= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[1])
+					
+					if "/" in self.genotype_info_chrom_positions[snp][2][0]:
+						allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[0])
+						allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[1])
+
+					elif "|" in self.genotype_info_chrom_positions[snp][2][0]:
+						allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[0])
+						allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[1])
+
+					ad1= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_1_number])
+					ad2= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_2_number])
 
 					#Filter based on depth statistics (disable if --no_snp_filter flag is turned on)
 					if not no_snp_filter:
 						if snp_utilities.check_depth_criteria_het(ad1, ad2):
 							self.positions_snps_filtered.append(((max(ad1, ad2))/(ad1+ad2)))
-							self.no_snps_vcf_filtered+=1
+							self.no_het_snps_vcf_filtered+=1
 
 							if (max(ad1, ad2)/(ad1+ad2))<0.5:
 								print("Error! Some heterozygous SNPs have a frequency of the dominant allele that is smaller than 0.5. Check the format of your VCF file!")
@@ -64,7 +73,7 @@ class VCF_AFD(VCF):
 
 					else:
 						self.positions_snps_filtered.append(((max(ad1, ad2))/(ad1+ad2)))
-						self.no_snps_vcf_filtered+=1
+						self.no_het_snps_vcf_filtered+=1
 						if ((max(ad1, ad2))/(ad1+ad2))<0.5:
 								print("Error! Some heterozygous SNPs have a frequency of the dominant allele that is smaller than 0.5. Check the format of your VCF file!")
 								print(self.genotype_info_chrom_positions[snp])
@@ -83,6 +92,8 @@ class Plot():
 		self.fig_name=fig_name
 
 	def plot_allelic_depth_dist(self, allelic_depths_frequencies, bins, species, out_plot):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		sns.set_style("darkgrid")
 		sns.histplot(data=allelic_depths_frequencies, bins=int(bins), kde = False, color='steelblue')
@@ -131,10 +142,10 @@ def main():
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
-		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
+		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
+		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
 	else:
-		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
 	#Plot dominant allele distribution

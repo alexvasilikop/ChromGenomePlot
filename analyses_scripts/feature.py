@@ -6,21 +6,22 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import argparse
 import re
+import numpy as np
 
 ###########################################################################################################################################################################################################################
-# Plots two features along chromosomes (e.g. gene content vs repetitive content) using bed files of annotations (each bed annotation must contain sorted annotations by genome position annotations)
+# Plots one feature along chromosomes (e.g. gene content or repetitive content) using CHROM files of annotations (each CHROM annotation must contain sorted annotations by genome position)
 ##############################################################################################################################################################################################################
 
-class BEDfile():
+class CHROMfile():
 
 	def __init__(self, filename):
 
 		self.filename = filename
 		self.chrom_features = defaultdict(lambda: [])
 
-	def read_bed(self, selected_chrom_to_use):
+	def read_CHROM(self, selected_chrom_to_use):
 
-		self.chrom_features=feature_utils.bed_read_util(self.filename, self.chrom_features, selected_chrom_to_use)
+		self.chrom_features=feature_utils.CHROM_read_util(self.filename, self.chrom_features, selected_chrom_to_use)
 
 ########################################################################################################################################
 class Assembly_FASTA():
@@ -29,55 +30,16 @@ class Assembly_FASTA():
 
 		self.filename = filename
 		self.scaffolds_seqs = defaultdict(lambda: "")
-		self.chromosomes_windows = defaultdict(lambda: {})
+		self.chromosomes_windows_coverage_numbers = defaultdict(lambda: {})
 
 	def read_fasta(self, selected_chrom_to_use):
 
 		self.scaffolds_seqs=feature_utils.fasta_read_util(self.filename, self.scaffolds_seqs, selected_chrom_to_use)
 
-	def calculate_average_bed_values_chromosomes(self, bin_size, feature_1):
+	def calculate_coverage_number_values_chromosomes(self, bin_size, feature_1, feature_1_label, mode_numbers):
 
-		'''Provide as input window size, feature_1 and feature_2 position dictionaries {chromX: [p1, p2, ..], chromY: [p1, p2, ..]}'''
-		for chromosome in self.scaffolds_seqs.keys():
-
-			print("Working on chromosome: "+chromosome+" ...")
-			#Coverage-specific values
-			start_window = 1
-			count_bases_window = 0
-			length_chromosome = len(self.scaffolds_seqs[chromosome])
-			position=0
-			#account for non-overlapping annotations (return unique list of covered positions)
-			unique_feature_1=list(set(feature_1[chromosome]))
-
-			for nuc in self.scaffolds_seqs[chromosome]:
-				count_bases_window += 1
-
-				if (position+1)%bin_size==0:
-
-					#Infer percent coverage for window
-					feature_1_window  = feature_utils.total_window(start_window, position, chromosome, unique_feature_1)	
-					feature_1_coverage = float(feature_1_window/bin_size)*100
-
-					#Add depth, snp percent of start position
-					self.chromosomes_windows[chromosome][start_window] = (feature_1_coverage)
-					#Add depth , snp percent  of end position
-					self.chromosomes_windows[chromosome][position] = (feature_1_coverage)
-					start_window= position+1
-					count_bases_window = 0
-
-				#if reaching the end of chromosome before the windowstep is completed
-				elif position == length_chromosome-1:
-
-					##Infer percent coverage for window
-					feature_1_window  = feature_utils.total_window(start_window, position, chromosome, unique_feature_1)	
-					feature_1_coverage = float(feature_1_window/count_bases_window)*100
-
-					#Add depth, snp percent of start position
-					self.chromosomes_windows[chromosome][start_window] = (feature_1_coverage)
-					#Add depth , snp percent  of end position
-					self.chromosomes_windows[chromosome][position] = (feature_1_coverage)
-
-				position+=1
+		#return percent coverage from windows
+		self.chromosomes_windows_coverage_numbers = feature_utils.total_window_numbers_or_coverage(bin_size, self.scaffolds_seqs, feature_1, feature_1_label, mode_numbers)
 
 ###############################################################################################################################################################################
 class Plot():
@@ -86,15 +48,21 @@ class Plot():
 
 		self.fig_name=fig_name
 
-	def plot_features_chromosomes(self, features_chroms, max_len, label_1, species, no_fill):
+	def plot_features_chromosomes(self, features_chroms, max_len, label_1, species, no_fill, bin_size, mode_numbers):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(features_chroms), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
-		title = fig.suptitle(label_1+' content along chromosomes'+" - "+species, fontsize=10)
+		title = fig.suptitle('Content of '+label_1+' along chromosomes/scaffolds'+" - "+species, fontsize=10)
 		x_title = fig.supxlabel("Position on chromosome (Mb)")
-		y_title = fig.supylabel("Percentage of bases covered in window (%)")
-		no=0
+		if mode_numbers:
+			y_title = fig.supylabel("Number of features in windows of size "+str(bin_size)+" bp")
+		else:
+			y_title = fig.supylabel("Percentage of bases covered in chromosome windows of size "+str(bin_size)+" bp (%)")
 
+		no=0
 		if len(features_chroms.keys())>1:
+			#for more than one chromosome
 
 			for i in features_chroms.keys():
 				#Unpack dictionary -> creates lists of values for plotting
@@ -156,15 +124,16 @@ def main():
 	print("Estimating feature content (one feature) for chromosome windows and plotting content along the chromosomes of the reference genome...")
 	print("############################################################################################################################################################\n")
 
-	parser=argparse.ArgumentParser(description="Plot content of one feature (e.g., genes or repeats) along the chromosomes using a BED files of genome annotations")
+	parser=argparse.ArgumentParser(description="Plot content of one feature (e.g., genes, coding sequences or repeats) along the chromosomes using a CHROM file of genome annotations")
 	parser.add_argument("in_assembly", help="Genome assembly fasta used to make the annotations")
-	parser.add_argument("feature_1", help="BED file with annotated feature 1 on the reference genome")
-	parser.add_argument("feature_1_name", help="Name of feature 1 for plot label without spaces (e.g., coding_sequences)")
+	parser.add_argument("feature_1", help="CHROM coordinate file with annotated feature on the reference genome")
+	parser.add_argument("feature_1_name", help="Name of feature for plot label without spaces (e.g., coding_sequences, introns)")
 	parser.add_argument("out_plot", help="Output plot with feature content along chromosomes.")
-	parser.add_argument("bin_size", help="Size of bins (bp) for plot (percent bases covered by feature plotted for each bin)")
-	parser.add_argument("species", help="Species name/sequencing library for title of the plot")
+	parser.add_argument("bin_size", help="Size of bins (bp) for plot (percent bases covered by feature plotted for each bin)/or number of features if --numbers")
+	parser.add_argument("species", help="Species name / sequencing library for title of the plot")
 	parser.add_argument('-sel_chrom', action='store', help="List of selected chromosomes to use (separated by \",\" without spaces, e.g.: \"chrom_1,chrom_2\" )")
 	parser.add_argument('--no_fill', action='store_true', help="Use this flag to indicate no color filling between the lineplot and the x axis")
+	parser.add_argument('--numbers', action='store_true', help="Use this flag to indicate numbers of features instead of coverage of bases in chromosome windows")
 
 	parser.usage = 'python3 chromgenomeplot.py feature [positional arguments]'
 
@@ -180,22 +149,39 @@ def main():
 	print("Finished reading Assembly fasta file...\n"+200*"-"+"\n")
 
 	#Reading feature 1 annotations
-	print("Processing BED file with feature annotations...\n")
-	my_feature_1 = BEDfile(filename=args.feature_1)
-	my_feature_1.read_bed(selected_chrom_to_use)
-	print("Finished processing BED file!\n"+200*"-"+"\n")
+	print("Processing CHROM file with feature annotations...\n")
+	my_feature_1 = CHROMfile(filename=args.feature_1)
+	#Read CHROM
+	my_feature_1.read_CHROM(selected_chrom_to_use)
+	print("Finished processing CHROM file!\n"+200*"-"+"\n")
 
-	#Calculates feature content (percent bases covered) per window along the chromosomes
-	print("Extracting average percent feature content for windows of "+str(args.bin_size)+" bp ...")
-	my_assembly.calculate_average_bed_values_chromosomes(bin_size=int(args.bin_size), feature_1=my_feature_1.chrom_features)
+	print("Extracting feature content for windows of "+str(args.bin_size)+" bp ...")
+	my_assembly.calculate_coverage_number_values_chromosomes(bin_size=int(args.bin_size), feature_1=my_feature_1.chrom_features, feature_1_label=args.feature_1_name, mode_numbers=args.numbers)
 	print("Finished processing all files!\n"+200*"-"+"\n")
 	
-	#Return values for plotting (dictionary of dictionaries of tuples)
-	#Return dictionary with chromosomes as keys and -> [position -> (feature 1 percent, feature 2 percent)] as value
-	#Make plot SNPS and depth along chromosomes
+	#Make plot feature number or coverage along chromosomes
 	print("Preparing the plot...")
 	my_plot = Plot(fig_name=args.out_plot)
-	my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows, max_len=feature_utils.get_max_length(my_assembly.scaffolds_seqs), label_1=args.feature_1_name, species=args.species, no_fill=args.no_fill)
+	if not args.numbers:
+		my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows_coverage_numbers, \
+								          max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+									      label_1=args.feature_1_name, \
+									      species=args.species, \
+									      no_fill=args.no_fill, \
+									      bin_size=args.bin_size, \
+									      mode_numbers=args.numbers)
+		print("\n## Average base coverage of feature in each chromosome window: {percent:.2f} % ##\n".format(percent=np.mean(feature_utils.coverage_or_numbers_per_window(my_assembly.chromosomes_windows_coverage_numbers, args.numbers))))
+
+	else:
+		my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows_coverage_numbers, \
+								          max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+									      label_1=args.feature_1_name, \
+									      species=args.species, \
+									      no_fill=args.no_fill,
+									      bin_size=args.bin_size, \
+									      mode_numbers=args.numbers)
+		print("\n## Average number of features in each chromosome window {percent:.2f} ##\n".format(percent=np.mean(feature_utils.coverage_or_numbers_per_window(my_assembly.chromosomes_windows_coverage_numbers, args.numbers))))
+
 	print("All done!")
 
 ########################################################################################################################################################################

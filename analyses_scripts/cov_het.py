@@ -5,6 +5,7 @@ from util.normalize_max import normalize
 from util import samtools_depths_util, chrom_selection, snp_utilities
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import numpy as np
 import argparse
 import os
 
@@ -13,7 +14,7 @@ import os
 # (total depth min. = 20, allellic depth proportion >=0.20 and <=0.80)
 # If depths file has been generated in previous run it is automatically used (samtools depth -> step is skipped)
 # Coverage is printed as normalized to the maximum printed heterozygosity value on the y axis
-# A maximum value of % heterozygosity needs to be provided for the plot (e.g. a value of 10 means: 10% max. heterozygosity). Se this value to a much higher value than the 
+# A maximum value of % heterozygosity needs to be provided for the plot (e.g. a value of 10 means: 10% max. heterozygosity).
 
 ###############################################################################################################################
 class BAM_alignment():
@@ -57,6 +58,7 @@ class BAM_alignment():
 		depth_total=0
 
 		'''Provide as input window size, snp, and uncalled position dictionaries {chromX: [p1, p2, ..], chromY: [p1, p2, ..]}'''
+		#Infer percent heterozygous snps for each window
 		for chromosome in self.chromosomes_and_depths:
 
 			print("Working on chromosome: "+chromosome+" ...")
@@ -112,7 +114,7 @@ class VCF():
 		self.filename = filename
 		self.no_snps_uncalled_vcf = 0
 		self.no_snps_vcf = 0
-		self.no_snps_vcf_filtered = 0
+		self.no_het_snps_vcf_filtered = 0
 		self.genotype_info_chrom_positions= defaultdict(lambda: [])
 		self.positions_uncalled_for_plotting= defaultdict(lambda: [])
 		self.positions_snps_filtered= defaultdict(lambda: [])
@@ -125,9 +127,9 @@ class VCF():
 		'''
 		(self.no_snps_uncalled_vcf, self.genotype_info_chrom_positions)=snp_utilities.extract_snp_variants_for_sample_util(self.filename, self.no_snps_uncalled_vcf, self.genotype_info_chrom_positions, column_no, selected_chrom_to_use)
 
-	def filter_snps(self, no_snp_filter):
+	def filter_snps(self, no_snp_filter, mode="hom"):
 
-		#Filter SNPS based on separators, biallelic sites, total depth and allelic depth ratio and extract uncalled sites for SNP percent estimation
+		#Filter SNPS based on separators, biallelic sites, total depth and allelic depth ratio and extract uncalled sites for heterozygous SNP percent estimation
 
 		for snp in self.genotype_info_chrom_positions.keys():
 
@@ -144,10 +146,36 @@ class VCF():
 					#store positions with uncalled genotypes for each chromosome to exclude them from the average heterozygosity estimation for each window later
 					self.positions_uncalled_for_plotting[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
 					
-				#check for homozygous (non-variant) sites (could be that the same position has a SNP for another sample in the same VCF so these sites are printed in the combined VCF of SNPs or that there is one SNP that is homozygous but different from the reference)
+				#check for homozygous sites (could be that the same position has a SNP for another sample in the same VCF so these sites are printed in the combined VCF of SNPs or that there is one SNP that is homozygous but different from the reference)
 				elif alleles_for_site[0]==alleles_for_site[1]:
 					self.homozygous_snps+=1
 					self.no_snps_vcf+=1
+
+					#if mode is not specified homozygous SNPs are also included
+					if mode=="hom":
+						allele_1_number=0
+						allele_2_number=0
+
+						if "/" in self.genotype_info_chrom_positions[snp][2][0]:
+							allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[0])
+							allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[1])
+
+						elif "|" in self.genotype_info_chrom_positions[snp][2][0]:
+							allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[0])
+							allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[1])
+
+						ad1= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_1_number])
+						ad2= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_2_number])
+
+						#Filter based on depth statistics (disable if --no_snp_filter flag is turned on)
+						if not no_snp_filter:
+							if snp_utilities.check_allelic_depth_criteria(ad1, ad2):
+								self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
+								self.no_het_snps_vcf_filtered+=1
+
+						else:
+							self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
+							self.no_het_snps_vcf_filtered+=1
 
 				else:
 					self.no_snps_vcf+=1
@@ -170,11 +198,11 @@ class VCF():
 					if not no_snp_filter:
 						if snp_utilities.check_depth_criteria_het(ad1, ad2):
 							self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
-							self.no_snps_vcf_filtered+=1
+							self.no_het_snps_vcf_filtered+=1
 
 					else:
 						self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
-						self.no_snps_vcf_filtered+=1
+						self.no_het_snps_vcf_filtered+=1
 
 			else:
 				#Likely multiallelic sites (should not exist for heterozygosity estimates) -> Double check data come if such positions exist in VCF
@@ -190,6 +218,8 @@ class Plot():
 		self.fig_name=fig_name
 
 	def plot_coverage_heterozygosity_chromosomes(self, snps_and_depths, average_depth, max_het, species, chrom_lengths, no_fill, no_avg_cov):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(snps_and_depths), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
 		title = fig.suptitle('SNP-based heterozygosity and coverage depth along chromosomes'+" - "+species, fontsize=10)
@@ -267,7 +297,7 @@ class Plot():
 		lgd = fig.legend(handles, labels, fontsize=8, loc="right", bbox_to_anchor=(1.05, 0.5))
 		plt.subplots_adjust(right=1.05)
 		fig.savefig(self.fig_name, bbox_extra_artists=(lgd, title, x_title, y_title), bbox_inches='tight')
-		#plt.show()
+		plt.show()
 
 ####################################################################################################################################################
 def main():
@@ -276,18 +306,18 @@ def main():
 	print("Estimating average coverage depth and SNP-based heterozygosity for chromosome windows and plotting them along the chromosomes of the reference genome...")
 	print("##################################################################################################################################################\n")
 
-	parser=argparse.ArgumentParser(description="Plot coverage and SNP-based heterozygosity along chromosomes from BAM file and VCF file. Requires samtools on path.")
+	parser=argparse.ArgumentParser(description="Plot coverage and SNP-based heterozygosity along chromosomes from BAM and VCF files. Requires SAMtools on path")
 	parser.add_argument("in_alignment", help="Genome-read alignment file in BAM format (sorted)")
-	parser.add_argument("in_vcf", help="VCF output file of GATK4 that has been filtered to contain only SNPs. It may contain calls for multiple samples (each on different column).")
+	parser.add_argument("in_vcf", help="VCF output file of GATK4 that has been filtered to contain only SNPs. It may contain calls for multiple samples (each on different column)")
 	parser.add_argument("column_sample_in_vcf", help="Column no. of genotype information for specified sample in VCF (starting from 0). Assumes the following format: GT:AD:DP (e.g. 0/1:12,6:18)")
-	parser.add_argument("out_plot", help="Output plot name with coverage and SNPs plotted along chromosomes.")
-	parser.add_argument("max_het", help="Max. heterozygosity (percent SNPs) to plot on y axis (for coverage normalization). If --no_avg_cov is used then coverage is not normalized to be comparable across chromosomes but only based on a max_het value.")
+	parser.add_argument("out_plot", help="Output plot name with coverage and SNPs plotted along chromosomes")
+	parser.add_argument("max_het", help="Max. heterozygosity (percent heterozygous SNPs) to plot on y axis (for coverage normalization). If the flag --no_avg_cov is used then coverage is not normalized to be comparable across chromosomes but only based on a max_het value")
 	parser.add_argument("bin_size", help="Size of bins (bp) for coverage plot (average coverage and SNPs percentage plotted for each bin)")
 	parser.add_argument("species", help="Species name/sequencing library for title of the plot")
 	parser.add_argument('-sel_chrom', action='store', help="List of selected chromosomes to use (separated by \",\" without spaces, e.g.: \"chrom_1,chrom_2\")")
 	parser.add_argument('--no_fill', action='store_true', help="Use this flag to indicate no color filling between the lineplot and the x axis")
 	parser.add_argument('--no_snp_filter', action='store_true', help="Use this flag if you don't want to filter the SNPs based on total allelic depth for position and allelic depth ratio")
-	parser.add_argument('--no_avg_cov', action='store_true', help="Use this flag if you don't want to normalize the coverage by its average so that it is comparable among chromosomes (coverage is only normalized to the max. heterozygosity)")
+	parser.add_argument('--no_avg_cov', action='store_true', help="Use this flag if you don't want to normalize the coverage by its average so that it is comparable among chromosomes (coverage is only normalized to the max_het value)")
 
 	parser.usage = 'python3 chromgenomeplot.py cov_het [positional arguments]'
 
@@ -305,17 +335,17 @@ def main():
 	print("Filtering SNPs from VCF file...\n")
 	if args.no_snp_filter:
 		print("Filtering of heterozygous SNPs is disabled...\n")
-	my_vcf.filter_snps(args.no_snp_filter)
+	my_vcf.filter_snps(args.no_snp_filter, mode="het")
 	print("Total no. of SNPs: "+str(my_vcf.no_snps_vcf))
 	print("Total no. of homozygous SNPs: "+str(my_vcf.homozygous_snps))
 	print("Total no. of heterozygous SNPs: "+str(my_vcf.heterozygous_snps)+"\n")
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
-		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
+		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
+		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
 	else:
-		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
 	#Processing BAM alignment
@@ -325,7 +355,7 @@ def main():
 	#Read BAM file and calculate per base coverages -> generates depths.txt file
 	print("Running samtools depth on BAM alignment file...\n")
 	my_alignment.read_alignment(selected_chrom_to_use)
-	print("Genome size from depths file (all genome positions in output: samtools depth -aa): "+str(my_alignment.genome_size)+"\n")
+	print("Genome size from depths file (all genome positions): "+str(my_alignment.genome_size)+"\n")
 
 	#Calculates coverages and snps per window along the chromosomes
 	print("Extracting average coverages and percent heterozygous SNPs for chromosome windows of "+str(args.bin_size)+"bp...\n")
@@ -350,12 +380,17 @@ def main():
 
 	print("All done!\n"+200*"-"+"\n")
 
-	#Print average % SNPs and coverage depth for genome
+	#Print average % het SNPs and coverage depth for genome
 	print("\n"+"Average coverage depth:")
-	print(int(my_alignment.average_depth))
-	print("Average Heterozygosity (% SNPs of windows):")
+	print(f"{my_alignment.average_depth:.0f} X")
+
+	print("\n% Heterozygosity of the genome (% of bases with heterozygous SNPs):")
 	av_het=snp_utilities.average_heterozygosity(snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting, genome_size=my_alignment.genome_size)
 	print(f"{av_het:.2f}%")
+
+	print("\nAverage percent Heterozygosity (Average % of heterozygous SNPs in chromosome windows):")
+	print(f"{np.mean(snp_utilities.average_no_snps_windows(my_alignment.chromosomes_windows_depths_snps)):.2f} %")
+	
 
 ###############################################
 if __name__ == '__main__':

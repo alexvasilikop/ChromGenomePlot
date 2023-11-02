@@ -77,6 +77,8 @@ class Plot():
 
 	def generate_plot(self, species, chromosome, chrom_depths):
 
+		plt.rcParams["font.family"]= "Arial"
+
 		fig, axs = plt.subplots(1)
 		fig.suptitle(chromosome+" - "+species, fontsize=10)
 		tuples = sorted(chrom_depths.items()) # sorted by key, return a list of tuples
@@ -101,8 +103,8 @@ def main():
 	parser.add_argument("in_depths_file", help="Depths file generated with e.g. SAMtools with three comumns tab delimited (chromosome position depth)")
 	parser.add_argument("out_plot", help="Output plot")
 	parser.add_argument("bin_size", help="Size of bins (bp) for coverage plot (average coverage plotted for each bin)")
-	parser.add_argument("start", help="Start position of target region")
-	parser.add_argument("end", help="End position of target region")
+	parser.add_argument("start", help="Start position of target region (bp)")
+	parser.add_argument("end", help="End position of target region (bp)")
 	parser.add_argument("chromosome", help="Target chromosome")
 	parser.add_argument("species", help="Species name/library for title of the plot")
 	parser.usage = 'python3 chromgenomeplot.py cov_depth_region [positional arguments]'

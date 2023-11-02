@@ -11,25 +11,25 @@ import argparse
 
 #Plots dominant allele frequency distribution along chromosomes.
 #############################################################################################""
-def allelic_depth_average(start_window, p, chromosome, snps):
+def major_allelic_depth_ratio_average(start_window, p, chromosome, snps):
 
 	#count snps for window
 	no_snps_window=0
 	total_freq=0
 
 	for (i, f) in snps[chromosome]:
-		if (i-1>=start_window) and (i-1<=p):
+		if (i>=start_window) and (i<=p):
 			no_snps_window+=1
 			total_freq+=f
 
 	if no_snps_window> 0:
-		#print("Average freq of dominant allele: "+str(float(total_freq/no_snps_window)))
+		#print("Average freq of dominant allele"
 		return float((total_freq/no_snps_window))
 
 	else:
 		print("Warning! Some windows contain no heterozygous SNPs. It is recommended to increase window size...")
 		print("A default value of 1.0 (frequency of dominant allele) will be printed for windows without SNPs")
-		return 1.0
+		return None
 
 ###############################################################################################################################
 class Assembly_FASTA_ALLELE_FREQ(Assembly_FASTA):
@@ -41,12 +41,11 @@ class Assembly_FASTA_ALLELE_FREQ(Assembly_FASTA):
 
 	def calculate_average_allelic_frequencies(self, bin_size, snps):
 
-		'''Provide as input window size, snp, and uncalled position dictionaries {chromX: [p1, p2, ..], chromY: [p1, p2, ..]}'''
 		for chromosome in self.scaffolds_seqs.keys():
 
 			print("Working on chromosome: "+chromosome+" ...")
 			#Coverage-specific values
-			start_window = 0
+			start_window = 1
 			count_bases_window = 0
 			length_chromosome = len(self.scaffolds_seqs[chromosome])
 			p=0
@@ -57,22 +56,22 @@ class Assembly_FASTA_ALLELE_FREQ(Assembly_FASTA):
 
 				if (p+1)%bin_size==0:
 
-					average_allelic_freq = allelic_depth_average(start_window, p, chromosome, snps)
+					average_allelic_freq = major_allelic_depth_ratio_average(start_window, p+1, chromosome, snps)
 
 					#add snp percent of start position
 					self.chromosomes_windows_allelic_freq[chromosome][start_window] = (average_allelic_freq)
 					#add snp percent of end position
-					self.chromosomes_windows_allelic_freq[chromosome][p] = (average_allelic_freq)
-					start_window= p+1
+					self.chromosomes_windows_allelic_freq[chromosome][p+1] = (average_allelic_freq)
+					start_window= p+2
 					count_bases_window = 0
 
 				#if reaching the end of chromosome before the windowstep is completed
 				elif p == length_chromosome-1:
 
-					average_allelic_freq = allelic_depth_average(start_window, p, chromosome, snps)
+					average_allelic_freq = major_allelic_depth_ratio_average(start_window, p+1, chromosome, snps)
 
 					self.chromosomes_windows_allelic_freq[chromosome][start_window] = (average_allelic_freq)
-					self.chromosomes_windows_allelic_freq[chromosome][p] = (average_allelic_freq)
+					self.chromosomes_windows_allelic_freq[chromosome][p+1] = (average_allelic_freq)
 
 				p+=1
 
@@ -96,7 +95,7 @@ class VCF_AF(VCF):
 
 					#store positions with uncalled genotypes for each chromosome to exclude them from the average heterozygosity estimation for each window later
 					self.positions_uncalled_for_plotting[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
-					
+
 				#check for homozygous (non-variant) sites (could be that the same position has a SNP for another sample in the same VCF so these sites are printed in the combined VCF of SNPs or that there is one SNP that is homozygous but different from the reference)
 				elif alleles_for_site[0]==alleles_for_site[1]:
 					self.homozygous_snps+=1
@@ -105,18 +104,28 @@ class VCF_AF(VCF):
 				else:
 					self.no_snps_vcf+=1
 					self.heterozygous_snps+=1
-					ad1= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[0])
-					ad2= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[1])
+					self.no_snps_uncalled_vcf+=1
+					
+					if "/" in self.genotype_info_chrom_positions[snp][2][0]:
+						allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[0])
+						allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("/")[1])
+
+					elif "|" in self.genotype_info_chrom_positions[snp][2][0]:
+						allele_1_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[0])
+						allele_2_number = int(self.genotype_info_chrom_positions[snp][2][0].split("|")[1])
+
+					ad1= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_1_number])
+					ad2= int(self.genotype_info_chrom_positions[snp][2][1].split(",")[allele_2_number])
 
 					#Filter based on depth statistics (disable if --no_snp_filter flag is turned on)
 					if not no_snp_filter:
 						if snp_utilities.check_depth_criteria_het(ad1, ad2):
 							self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append((int(self.genotype_info_chrom_positions[snp][1]),((max(ad1, ad2))/(ad1+ad2))))
-							self.no_snps_vcf_filtered+=1
+							self.no_het_snps_vcf_filtered+=1
 
 					else:
 						self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append((int(self.genotype_info_chrom_positions[snp][1]),((max(ad1, ad2))/(ad1+ad2))))
-						self.no_snps_vcf_filtered+=1
+						self.no_het_snps_vcf_filtered+=1
 
 			else:
 				#Likely multiallelic sites (should not exist for heterozygosity estimates) -> Double check data come if such positions exist in VCF
@@ -129,6 +138,8 @@ class VCF_AF(VCF):
 class Plot_ALLELE_FREQUENCY(Plot_SNP_NUMBER):
 
 	def plot_allele_freq_chromosomes(self, allele_freq, max_len, species, no_fill):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(allele_freq), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
 		title = fig.suptitle('Dominant allele frequency along chromosomes'+" - "+species, fontsize=10)
@@ -227,14 +238,14 @@ def main():
 	my_vcf.filter_snps(args.no_snp_filter)
 	print("Total no. of SNPs: "+str(my_vcf.no_snps_vcf))
 	print("Total no. of homozygous SNPs: "+str(my_vcf.homozygous_snps))
-	print("Total no. of heterozygous SNPs: "+str(my_vcf.heterozygous_snps)+"\n")
+	print("Total no. of heterozygous SNPs: "+str(my_vcf.heterozygous_snps))
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
-		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
+		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
+		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
 	else:
-		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
 	#Parsing assembly fasta
@@ -245,14 +256,17 @@ def main():
 	print("Finished reading Assembly fasta file...\n"+200*"-"+"\n")
 
 	#Calculates total SNP number per window along the chromosomes
-	print("Extracting total SNP number for windows of "+str(args.bin_size)+"bp ...")
+	print("Extracting total SNP number for windows of "+str(args.bin_size)+" bp ...")
 	my_assembly.calculate_average_allelic_frequencies(bin_size=int(args.bin_size), snps=my_vcf.positions_snps_filtered)
 	print("Finished processing all files!\n"+200*"-"+"\n")
 		
 	#Make plot SNPS numbers along chromosomes
 	print("Preparing the plot...")
 	my_plot = Plot_ALLELE_FREQUENCY(fig_name=args.out_plot)
-	my_plot.plot_allele_freq_chromosomes(allele_freq=my_assembly.chromosomes_windows_allelic_freq, max_len=feature_utils.get_max_length(my_assembly.scaffolds_seqs), species=args.species, no_fill=args.no_fill)
+	my_plot.plot_allele_freq_chromosomes(allele_freq=my_assembly.chromosomes_windows_allelic_freq, \
+									     max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+									     species=args.species, \
+									     no_fill=args.no_fill)
 
 	print("Average Heterozygosity (average %  of heterozygous SNPs in windows):")
 	av_het=snp_utilities.average_heterozygosity(snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting, genome_size=sum(len(v) for v in my_assembly.scaffolds_seqs.values()))

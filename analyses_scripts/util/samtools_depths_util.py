@@ -2,9 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import subprocess
+import shutil
 
 ################################################################################################
 def run_samtools(file, depths_file) :
+
+	#check SAMtools is on path
+	if shutil.which("samtools"):
+		print("SAMtools is installed and on path...")
+	else:
+		print("SAMtools is not installed or is not on path...")
+		exit(1)
 	
 	cmd="samtools depth -aa"+" "+file
 	fh_out = open(depths_file, "w")

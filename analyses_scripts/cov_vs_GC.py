@@ -25,7 +25,6 @@ class Alignment_new(Alignment):
 
 		for chromosome in self.chromosomes_and_depths.keys():
 			print("Working on chromosome: "+chromosome+" ...")
-			start_window = 1
 			depth_total = 0
 			average_depth = 0
 			self.chromosome_lengths[chromosome] = len(self.chromosomes_and_depths[chromosome])
@@ -44,7 +43,7 @@ class Alignment_new(Alignment):
 					self.GC_contents.append(((G_content+C_content)/(G_content+C_content+A_content+T_content))*100)
 					print(f"GC content: {((G_content+C_content)/(G_content+C_content+A_content+T_content))*100:.2f} %")
 					self.names.append(chromosome)
-					length='{:.2f}'.format(float(len(scaffolds_seqs[chromosome].replace("N", ""))/1000000))
+					length='{:.0f}'.format(len(str(scaffolds_seqs[chromosome]).upper().replace("N", "")))
 					self.lengths.append(length)
 
 	def prepare_data_structure_for_plot(self):
@@ -71,7 +70,7 @@ class Plot():
 			fig=plt.figure(figsize=(12,12), tight_layout=True)
 			sns.set_style("darkgrid")
 			sns.scatterplot(data=df, x="GC content (%)", y="Average coverage depth", size="Length (Mb)", hue="Name", alpha=.6)
-			lgd = plt.legend(loc="upper right",bbox_to_anchor=(1.15,1.00))
+			lgd = plt.legend(loc="upper right",bbox_to_anchor=(1.15,1.00), title="Length (Mb)")
 			fig.savefig(self.fig_name, bbox_extra_artists=(lgd))
 			plt.show()
 		else:

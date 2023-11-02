@@ -27,12 +27,12 @@ def uncalled_total_window(start_window, p, chromosome, uncalled):
 ##############################################################################
 def average_heterozygosity(snps, uncalled, genome_size):
 
-	#measures average snp-based heterozygosity
-	'''Input: dictionary of chrom->list_ofsnp_positions, dictionary of chrom->list_of_uncalled_positions, genome size'''
+	#measures average snp-based heterozygosity not average of windows but average heterozygous snps divided by genomesize-uncalled sites
+	'''Input: dictionary of chrom->list_of_snp_positions, dictionary of chrom->list_of_uncalled_positions, genome size'''
 	no_snps=0
 	no_uncalled=0
 
-	for chrom in snps.keys():
+	for chrom in sorted(snps.keys()):
 		for snp in snps[chrom]:
 			no_snps+=1
 
@@ -42,30 +42,38 @@ def average_heterozygosity(snps, uncalled, genome_size):
 
 	return (no_snps/(genome_size-no_uncalled)) *100
 
-############################################################################""""
-def average_snps_window(snps, windownumber):
+#####################################################################
+def average_no_snps_windows(chromosomes_positions_values, cov=True):
+	#returns snps numbers / percentages for all windows as a list
+	values=[]
 
-	#measures average snp-based heterozygosity
-	'''Input: dictionary of chrom->list_ofsnp_positions, dictionary of chrom->list_of_uncalled_positions, genome size'''
-	no_snps=0
+	if cov:
+		for c in chromosomes_positions_values:
+			index=0
+			for w_pos in sorted(chromosomes_positions_values[c]):
+				if index%2==0:
+					values.append(chromosomes_positions_values[c][w_pos][1])
+				index+=1
+	else:
+		for c in chromosomes_positions_values:
+			index=0
+			for w_pos in sorted(chromosomes_positions_values[c]):
+				if index%2==0:
+					values.append(chromosomes_positions_values[c][w_pos])
+				index+=1
 
-	for chrom in snps.keys():
-		for snp in snps[chrom]:
-			no_snps+=1
-
-	return int(no_snps/windownumber)
+	return values
 
 ###################################################################################
 def check_depth_criteria_het(ad1, ad2):
 
-
-	if (ad1+ad2) >= 20 and ((ad1/(ad1+ad2)) >= 0.20 and (ad1/(ad1+ad2)) <= 0.80):
+	if ((ad1+ad2) >= 20) and (((ad1/(ad1+ad2)) >= 0.20) and ((ad1/(ad1+ad2)) <= 0.80)):
 		return True
 	else:
 		return False
 
 ###################################################################################
-def check_depth_criteria_snp(ad1,ad2):
+def check_allelic_depth_criteria(ad1,ad2):
 
 	''' Input: total depth for site'''
 	#Filter SNPS based on total depth (>=20)'''

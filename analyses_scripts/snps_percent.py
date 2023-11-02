@@ -7,22 +7,20 @@ from snps_number import Assembly_FASTA_SNP_NUMBER
 from util import chrom_selection, snp_utilities, feature_utils
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import numpy as np
 import argparse
 import os
 
-# Plots snp number for windows along the selected chromosomes
+# Plots SNP percentage for windows along the selected chromosomes
 ###############################################################################################################################
 class Assembly_FASTA_SNP_PERCENT(Assembly_FASTA_SNP_NUMBER):
 
-	def calculate_average_snp_values_chromosomes(self, bin_size, snps):
-		'''
-		Provide as input window size, snps
-		'''
+	def calculate_average_snp_values_chromosomes(self, bin_size, snps, uncalled):
 		for chromosome in self.scaffolds_seqs.keys():
 
 			print("Working on chromosome: "+chromosome+" ...")
 			#Coverage-specific values
-			start_window = 0
+			start_window = 1
 			count_bases_window = 0
 			length_chromosome = len(self.scaffolds_seqs[chromosome])
 			position=0
@@ -33,39 +31,43 @@ class Assembly_FASTA_SNP_PERCENT(Assembly_FASTA_SNP_NUMBER):
 				if (position+1)%bin_size==0:
 
 					#Infer percent coverage for window
-					snps_window = snp_utilities.snps_total_window(start_window, position, chromosome, snps)
-					percentage=(snps_window/bin_size)*100
+					snps_window = snp_utilities.snps_total_window(start_window, position+1, chromosome, snps)
+					uncalled_window = snp_utilities.uncalled_total_window(start_window, position+1, chromosome, uncalled)
+					percentage=(snps_window/(bin_size-uncalled_window))*100
 
 					#Add depth, snp percent of start position
 					self.chromosomes_windows[chromosome][start_window] = (percentage)
 					#Add depth , snp percent  of end position
-					self.chromosomes_windows[chromosome][position] = (percentage)
-					start_window= position+1
+					self.chromosomes_windows[chromosome][position+1] = (percentage)
+					start_window= (position+1)+1
 					count_bases_window = 0
 
 				#if reaching the end of chromosome before the windowstep is completed
 				elif position == length_chromosome-1:
 
 					##Infer percent coverage for window
-					snps_window  = snp_utilities.snps_total_window(start_window, position, chromosome, snps)
-					percentage=(snps_window/bin_size)*100	
+					snps_window  = snp_utilities.snps_total_window(start_window, position+1, chromosome, snps)
+					uncalled_window = snp_utilities.uncalled_total_window(start_window, position+1, chromosome, uncalled)
+					percentage=(snps_window/(bin_size-uncalled_window))*100
 
 					#Add depth, snp percent of start position
 					self.chromosomes_windows[chromosome][start_window] = (percentage)
 					#Add depth , snp percent  of end position
-					self.chromosomes_windows[chromosome][position] = (percentage)
+					self.chromosomes_windows[chromosome][position+1] = (percentage)
 
 				position+=1
 
 ####################################################################################################################################################
-class Plot_SNP_NUMBER(Plot):
+class Plot_SNP_PERCENT(Plot):
 
-	def plot_snps_chromosomes(self, snps_chroms, max_len, species, no_fill):
+	def plot_snps_chromosomes(self, snps_chroms, max_len, species, bin_size, no_fill):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(snps_chroms), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
-		title = fig.suptitle('SNP percentage in chromosome windows'+" - "+species, fontsize=10)
+		title = fig.suptitle('SNP percentage (%) in chromosome windows'+" - "+species, fontsize=10)
 		x_title = fig.supxlabel("Position on chromosome (Mb)")
-		y_title = fig.supylabel("Percentage of SNPs in chromosome windows (%)")
+		y_title = fig.supylabel("Percentage of SNPs in chromosome windows of "+str(bin_size)+" bp")
 		no=0
 
 		if len(snps_chroms.keys())>1:
@@ -123,16 +125,16 @@ class Plot_SNP_NUMBER(Plot):
 		fig.savefig(self.fig_name, bbox_extra_artists=(lgd, title, x_title, y_title), bbox_inches='tight')
 		plt.show()
 
-
+####################################################################################################################################################################
 def main():
 
 	print("\n###############################################################################################################################################")
 	print("Estimating percent of SNPs ( % bases of homozygous + heterozygous SNPs) for chromosome windows and plotting them along the chromosomes of the reference genome ...")
 	print("##################################################################################################################################################\n")
 
-	parser=argparse.ArgumentParser(description="Plot SNP percentages for chromosome windows and plotting along chromosomes of the reference genome")
+	parser=argparse.ArgumentParser(description="Plot SNP percentage (%) for chromosome windows along chromosomes/scaffolds of the reference genome")
 	parser.add_argument("in_assembly", help="Genome assembly fasta")
-	parser.add_argument("in_vcf", help="VCF output file of GATK4 that has been filtered to contain only SNPs. It may contain calls for multiple samples (each on different column).")
+	parser.add_argument("in_vcf", help="VCF output file of GATK4 that has been filtered to contain only SNPs. It may contain calls for multiple samples (each on different column)")
 	parser.add_argument("column_sample_in_vcf", help="Column no. of genotype information for specified sample in VCF (starting from 0). Assumes the following format: GT:AD:DP (e.g. 0/1:12,6:18)")
 	parser.add_argument("out_plot", help="Output plot name with coverage and SNPs plotted along chromosomes")
 	parser.add_argument("bin_size", help="Size of bins in bp (SNPs' percentage plotted for each bin)")
@@ -162,10 +164,10 @@ def main():
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of SNPs that pass the filtering criteria (a) >=20 total depth for position: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
-		print("Percent of SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.no_snps_vcf-my_vcf.no_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100))
+		print("\nTotal no. of SNPs that pass the filtering criteria (a) >=20 total depth for position: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
+		print("Percent of SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.no_snps_vcf-my_vcf.no_het_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100))
 	else:
-		print("No filtering of SNPs performed: {percent_removed: .2f}%  of SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of SNPs performed: {percent_removed: .2f}%  of SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
 	#Parsing assembly fasta
@@ -176,15 +178,26 @@ def main():
 	print("Finished reading Assembly fasta file...\n"+200*"-"+"\n")
 
 	#Calculates total SNP number per window along the chromosomes
-	print("Extracting total SNP number for windows of "+str(args.bin_size)+"bp...")
-	my_assembly.calculate_average_snp_values_chromosomes(bin_size=int(args.bin_size), snps=my_vcf.positions_snps_filtered)
+	print("Extracting total SNP number for windows of "+str(args.bin_size)+" bp...")
+	my_assembly.calculate_average_snp_values_chromosomes(bin_size=int(args.bin_size), snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting)
 	print("Finished processing all files!\n"+200*"-"+"\n")
 		
 	#Make plot SNPS numbers along chromosomes
 	print("Preparing the plot...")
-	my_plot = Plot_SNP_NUMBER(fig_name=args.out_plot)
-	my_plot.plot_snps_chromosomes(snps_chroms=my_assembly.chromosomes_windows, max_len=feature_utils.get_max_length(my_assembly.scaffolds_seqs), species=args.species, no_fill=args.no_fill)
-	print("All done!\n"+200*"-"+"\n")
+	my_plot = Plot_SNP_PERCENT(fig_name=args.out_plot)
+	my_plot.plot_snps_chromosomes(snps_chroms=my_assembly.chromosomes_windows, \
+								  max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+								  species=args.species, \
+								  bin_size=args.bin_size, \
+								  no_fill=args.no_fill)
+
+	print("\n% SNP content (including homozygous SNPs):")
+	av_snp=snp_utilities.average_heterozygosity(snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting, genome_size=np.sum([len(seq) for seq in my_assembly.scaffolds_seqs.values()]))
+	print(f"{av_snp:.2f}%")
+
+	print("\nAverage percent SNPs (average % of SNPs in chromosome windows):")
+	print(f"{np.mean(snp_utilities.average_no_snps_windows(my_assembly.chromosomes_windows, cov=False)):.2f} %")
+	print("\nAll done!\n"+200*"-"+"\n")
 
 ###############################################
 if __name__ == '__main__':

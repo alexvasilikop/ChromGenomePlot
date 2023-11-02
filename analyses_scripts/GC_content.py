@@ -36,10 +36,10 @@ class Assembly_FASTA(Assembly_FASTA):
 				if (position+1)%bin_size==0:
 
 					#Add depth, snp percent of start position
-					self.chromosomes_windows[chromosome][start_window] = ((count_GC/(count_GC+count_AT))*100)
+					self.chromosomes_windows_coverage_numbers[chromosome][start_window] = ((count_GC/(count_GC+count_AT))*100)
 					#Add depth , snp percent  of end position
-					self.chromosomes_windows[chromosome][position] = ((count_GC/(count_GC+count_AT))*100)
-					start_window= position+1
+					self.chromosomes_windows_coverage_numbers[chromosome][position+1] = ((count_GC/(count_GC+count_AT))*100)
+					start_window= (position+1)+1
 					count_bases_window = 0
 					count_AT=0
 					count_GC=0
@@ -48,9 +48,9 @@ class Assembly_FASTA(Assembly_FASTA):
 				elif position == length_chromosome-1:
 
 					#Add depth, snp percent of start position
-					self.chromosomes_windows[chromosome][start_window] = ((count_GC/(count_GC+count_AT))*100)
+					self.chromosomes_windows_coverage_numbers[chromosome][start_window] = ((count_GC/(count_GC+count_AT))*100)
 					#Add depth , snp percent  of end position
-					self.chromosomes_windows[chromosome][position] = ((count_GC/(count_GC+count_AT))*100)
+					self.chromosomes_windows_coverage_numbers[chromosome][position+1] = ((count_GC/(count_GC+count_AT))*100)
 
 				position+=1
 
@@ -58,6 +58,8 @@ class Assembly_FASTA(Assembly_FASTA):
 class Plot(Plot):
 
 	def plot_features_chromosomes(self, features_chroms, max_len, species, no_fill):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(features_chroms), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
 		title = fig.suptitle('GC content along chromosomes'+" - "+species, fontsize=10)
@@ -159,7 +161,10 @@ def main():
 	#Return values for plotting
 	print("Preparing the plot...")
 	my_plot = Plot(fig_name=args.out_plot)
-	my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows, max_len=feature_utils.get_max_length(my_assembly.scaffolds_seqs), species=args.species, no_fill=args.no_fill)
+	my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows_coverage_numbers, \
+									  max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+									  species=args.species, \
+									  no_fill=args.no_fill)
 	print("All done!")
 
 ########################################################################################################################################################################

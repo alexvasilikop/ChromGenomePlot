@@ -7,12 +7,13 @@ from cov_snps_number import VCF
 from cov_het import BAM_alignment
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import numpy as np
 import argparse
 import os
 
-# Plots coverage depth and SNP content along chromosomes based on provided 1) BAM (sorted) and 2) VCF file (from GATK4)
-# Plot parameters (such as max. size of chromosomes need to be adjusted if necessary in the Plot Class, see below)
-# The VCF file (output of GATK GenotypeGVCFS) has to be filtered to include only SNP variants (e.g. with GATK SelectVariants) -> further filtering of SNPs is done by the script (depth min. = 20, allellic depth ratio >=0.20 and <=0.80)
+# Plots coverage depth and SNP content (%) along chromosomes based on provided 1) BAM (sorted) and 2) VCF file (from GATK4)
+# The VCF file (output of GATK GenotypeGVCFS) has to be filtered to include only SNP variants (e.g. with GATK SelectVariants) -> 
+# -> further filtering of SNPs is done by the script (depth min. = 20, allellic depth ratio >=0.20 and <=0.80)
 # If depths file has been generated in previous run it is automatically used (samtools depth -> step is skipped)
 
 ###############################################################################################################################
@@ -72,6 +73,8 @@ class Plot():
 		self.fig_name=fig_name
 
 	def plot_coverage_heterozygosity_chromosomes(self, snps_and_depths, average_depth, max_snp_percent, species, chrom_lengths, no_fill, no_avg_cov):
+
+		plt.rcParams["font.family"]= "Arial"
 
 		fig, axs = plt.subplots(nrows=len(snps_and_depths), ncols=1, figsize=(14,10), sharey=True, sharex=True, tight_layout=True)
 		title = fig.suptitle('SNPs and coverage depth along chromosomes'+" - "+species, fontsize=10)
@@ -158,18 +161,18 @@ def main():
 	print("Estimating % SNP content (homozygous + heterozygous SNPs) and average coverage depth for chromosome windows and plotting them along the chromosomes of the reference genome ...")
 	print("##################################################################################################################################################\n")
 
-	parser=argparse.ArgumentParser(description="Plot coverage and SNP percentage for windows along chromosomes of reference genome from BAM file and VCF file. Requires samtools on path.")
+	parser=argparse.ArgumentParser(description="Plot coverage depth and SNP percentage in chromosome windows of the reference genome from BAM and VCF files. Requires SAMtools on path")
 	parser.add_argument("in_alignment", help="Genome-read alignment file in BAM format (sorted)")
-	parser.add_argument("in_vcf", help="VCF output file of GATK4 that has been filtered to contain only SNPs. It may contain calls for multiple samples (each on different column).")
+	parser.add_argument("in_vcf", help="VCF output file of GATK4 that has been filtered to contain only SNPs. It may contain calls for multiple samples (each on different column)")
 	parser.add_argument("column_sample_in_vcf", help="Column no. of genotype information for specified sample in VCF (starting from 0). Assumes the following format: GT:AD:DP (e.g. 0/1:12,6:18)")
-	parser.add_argument("out_plot", help="Output plot name with coverage and SNPs plotted along chromosomes.")
+	parser.add_argument("out_plot", help="Output plot name with coverage and SNPs plotted along chromosomes")
 	parser.add_argument("max_snp_percent", help="Max. percent of total SNPs to plot on y axis (for coverage normalization). If --no_avg_cov is used then coverage is not normalized to be comparable across chromosomes but only based on a max_snp_number value.")
 	parser.add_argument("bin_size", help="Size of bins (bp) for coverage plot (average coverage and SNPs percentage plotted for each bin)")
 	parser.add_argument("species", help="Species name/sequencing library for title of the plot")
 	parser.add_argument('-sel_chrom', action='store', help="List of selected chromosomes to use (separated by \",\" without spaces, e.g.: \"chrom_1,chrom_2\")")
 	parser.add_argument('--no_fill', action='store_true', help="Use this flag to indicate no color filling between the lineplot and the x axis")
 	parser.add_argument('--no_snp_filter', action='store_true', help="Use this flag if you don't want to filter the SNPs based on total allelic depth for position")
-	parser.add_argument('--no_avg_cov', action='store_true', help="Use this flag if you don't want to normalize the coverage by its average so that it is comparable among chromosomes (coverage is only normalized to the max_snp_number)")
+	parser.add_argument('--no_avg_cov', action='store_true', help="Use this flag if you don't want to normalize the coverage by its average so that it is comparable among chromosomes (coverage is only normalized to the max_snp number)")
 
 	parser.usage = 'python3 chromgenomeplot.py cov_snps [positional arguments]'
 
@@ -192,10 +195,10 @@ def main():
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of SNPs that pass the filtering criteria (a) >=20 total depth for position: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
-		print("Percent of SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.no_snps_vcf-my_vcf.no_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100))
+		print("\nTotal no. of SNPs that pass the filtering criteria (a) >=20 total depth for position: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
+		print("Percent of SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.no_snps_vcf-my_vcf.no_het_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100))
 	else:
-		print("No filtering of SNPs performed: {percent_removed: .2f}%  of SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of SNPs performed: {percent_removed: .2f}%  of SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.no_snps_vcf)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
 	#Processing BAM alignment
@@ -205,7 +208,7 @@ def main():
 	#Read BAM file and calculate per base coverages -> generates depths.txt file
 	print("Running samtools depth on BAM alignment file...\n")
 	my_alignment.read_alignment(selected_chrom_to_use)
-	print("Genome size from depths file (all genome positions in output: samtools depth -aa): "+str(my_alignment.genome_size)+"\n")
+	print("Genome size from depths file: "+str(my_alignment.genome_size)+"\n")
 
 	#Calculates coverages and snps per window along the chromosomes
 	print("Extracting average coverages and percent SNPs for chromosome windows of "+str(args.bin_size)+"bp...\n")
@@ -221,21 +224,25 @@ def main():
 	my_plot = Plot(fig_name=args.out_plot)
 
 	my_plot.plot_coverage_heterozygosity_chromosomes(snps_and_depths=my_alignment.chromosomes_windows_depths_snps,  \
-		max_snp_percent=int(args.max_snp_percent), \
-		average_depth= my_alignment.average_depth, \
-		species=args.species, \
-		chrom_lengths=my_alignment.chromosome_lengths, \
-		no_fill=args.no_fill, \
-		no_avg_cov=args.no_avg_cov)
+												     max_snp_percent=int(args.max_snp_percent), \
+		                                             average_depth= my_alignment.average_depth, \
+		                                             species=args.species, \
+		                                             chrom_lengths=my_alignment.chromosome_lengths, \
+		                                             no_fill=args.no_fill, \
+		                                             no_avg_cov=args.no_avg_cov)
 
 	print("All done!\n"+200*"-"+"\n")
 
-	#Print average SNP% and coverage depth for genome
+	#Print average % totalSNP and coverage depth for genome
 	print("\n"+"Average coverage depth:")
 	print(str(int(my_alignment.average_depth))+"X")
-	print("Average % SNP content:")
+	print("\n% SNP content (including homozygous SNPs):")
 	av_snp=snp_utilities.average_heterozygosity(snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting, genome_size=my_alignment.genome_size)
 	print(f"{av_snp:.2f}%")
+
+	print("\nAverage percent SNPs (average % of SNPs in chromosome windows):")
+	print(f"{np.mean(snp_utilities.average_no_snps_windows(my_alignment.chromosomes_windows_depths_snps)):.2f} %")
+	
 
 ###############################################
 if __name__ == '__main__':
