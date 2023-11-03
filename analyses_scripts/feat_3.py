@@ -15,7 +15,7 @@ import argparse
 class Assembly_FASTA_new(Assembly_FASTA):
 
 	def __init__(self, filename):
-		Assembly_FASTA.__init__(self, filename)
+		super().__init__(filename)
 		self.chromosomes_windows_coverage_numbers_feat_1=defaultdict(lambda: {})
 		self.chromosomes_windows_coverage_numbers_feat_2=defaultdict(lambda: {})
 		self.chromosomes_windows_coverage_numbers_feat_3=defaultdict(lambda: {})
