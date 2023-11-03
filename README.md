@@ -20,6 +20,9 @@ python3 chromgenomeplot.py feature -h
 This will return the required positional (ordered arguments) for each analysis subtype. For example:
 ```
 python3 chromgenomeplot.py feature -h
+```
+will return:
+```
 
 ######################################################################################
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
