@@ -130,7 +130,7 @@ def total_window_numbers_or_coverage(bin_size, scaffolds_seqs, feature, label, m
 				scaffolds_and_feat_numbers[elements[0]][int(elements[1])+1]=float(elements[6])*100
 				scaffolds_and_feat_numbers[elements[0]][int(elements[2])]=float(elements[6])*100
 
-	print("# Finished coverage calculations with BEDTools for "+label+" ###\n"+100*"#")
+	print("# Finished calculations with BEDTools for "+label+" ###\n"+100*"#")
 	return scaffolds_and_feat_numbers
 
 ########################################################################################################
