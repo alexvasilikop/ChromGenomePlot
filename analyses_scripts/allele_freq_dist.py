@@ -14,16 +14,9 @@ import argparse
 class VCF_AFD(VCF):
 
 	def __init__(self, filename):
-
-		self.filename = filename
-		self.no_snps_uncalled_vcf = 0
-		self.no_snps_vcf = 0
-		self.no_het_snps_vcf_filtered = 0
-		self.genotype_info_chrom_positions= defaultdict(lambda: [])
+		super().__init__(filename)
 		self.positions_uncalled_for_plotting= defaultdict(lambda: [])
 		self.positions_snps_filtered= []
-		self.homozygous_snps = 0
-		self.heterozygous_snps = 0
 
 	def filter_snps(self, no_snp_filter):
 		#Filter SNPS based on separators, biallelic sites, total depth and allelic depth ratio and extract uncalled sites for SNP percent estimation
@@ -158,7 +151,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
 	
-
-
