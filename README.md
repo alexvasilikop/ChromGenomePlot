@@ -17,7 +17,48 @@ python3 chromgenomeplot.py cov_hist -h
 python3 chromgenomeplot.py cov_het -h
 python3 chromgenomeplot.py feature -h
 ```
-This will return the required positional (ordered arguments) for each analysis subtype.
+This will return the required positional (ordered arguments) for each analysis subtype. For example:
+```
+python3 chromgenomeplot.py feature -h
+
+######################################################################################
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+#<                                                                                  >#
+#<     ChromGenomePlot: analysis and visualization of diverse genomic features      >#
+#<             along the chromosomes of reference genome assemblies                 >#
+#<                                                                                  >#
+#<                        email: alexvasilikop@gmail.com                            >#
+#<                                                                                  >#
+#⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄#
+######################################################################################
+
+
+Analysis type:
+-> feature
+
+
+############################################################################################################################################################
+Estimating feature content (one feature) for chromosome windows and plotting content along the chromosomes of the reference genome...
+############################################################################################################################################################
+
+usage: python3 chromgenomeplot.py feature [positional arguments]
+
+Plot content of one feature (e.g., genes, coding sequences or repeats) along the chromosomes using a CHROM file of genome annotations
+
+positional arguments:
+  in_assembly           Genome assembly fasta used to make the annotations
+  feature_1             CHROM coordinate file with annotated feature on the reference genome
+  feature_1_name        Name of feature for plot label without spaces (e.g., coding_sequences, introns)
+  out_plot              Output plot with feature content along chromosomes.
+  bin_size              Size of bins (bp) for plot (percent bases covered by feature plotted for each bin)/or number of features if --numbers
+  species               Species name / sequencing library for title of the plot
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -sel_chrom SEL_CHROM  List of selected chromosomes to use (separated by "," without spaces, e.g.: "chrom_1,chrom_2" )
+  --no_fill             Use this flag to indicate no color filling between the lineplot and the x axis
+  --numbers             Use this flag to indicate numbers of features instead of coverage of bases in chromosome windows
+```
 
 The subdirectory ```analyses_scripts/``` and the ```chromgenomeplot.py``` script should be in the current working directory (where the analysis is run). The script looks for the presence of the analysis scripts subdirectory in the current working directory and throws an error if it does not find it.
 
