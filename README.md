@@ -82,7 +82,7 @@ Scaffold_11	7270	8945	gene
 Scaffold_11	9004	9861	gene
 Scaffold_11	9864	11177	gene
 ```
-The last column is optional. Each line represents the coordinates of different features of the same type (e.g., different genes)
+The last column is optional. Each row represents the coordinates of different features of the same type (e.g., different genes)
 
 ## Dependencies
 The tool requires installation of python 3. Installation of the following python libraries are required
