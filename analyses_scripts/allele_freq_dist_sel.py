@@ -35,16 +35,7 @@ def allelic_freqs_chrom_sel(positions_allelic_freqs, chrom, start, end, bin_size
 class VCF_AFD_SEL(VCF_AFD):
 
 	def __init__(self, filename):
-
-		self.filename = filename
-		self.no_snps_uncalled_vcf = 0
-		self.no_snps_vcf = 0
-		self.no_snps_vcf_filtered = 0
-		self.genotype_info_chrom_positions= defaultdict(lambda: [])
-		self.positions_uncalled_for_plotting= defaultdict(lambda: [])
-		self.positions_snps_filtered= []
-		self.homozygous_snps = 0
-		self.heterozygous_snps = 0
+		super().__init__(filename)
 		self.heterozygous_snps_selection = []
 		self.heterozygous_snps_selection_no = 0
 
@@ -88,7 +79,7 @@ class VCF_AFD_SEL(VCF_AFD):
 					if not no_snp_filter:
 						if snp_utilities.check_depth_criteria_het(ad1, ad2):
 							self.positions_snps_filtered.append(((max(ad1, ad2))/(ad1+ad2)))
-							self.no_snps_vcf_filtered+=1
+							self.no_het_snps_vcf_filtered+=1
 
 							#extract AF for selected region
 							if self.genotype_info_chrom_positions[snp][0] == selected_chrom and int(self.genotype_info_chrom_positions[snp][1])>=start and int(self.genotype_info_chrom_positions[snp][1])<=end:
@@ -102,7 +93,7 @@ class VCF_AFD_SEL(VCF_AFD):
 
 					else:
 						self.positions_snps_filtered.append(((max(ad1, ad2))/(ad1+ad2)))
-						self.no_snps_vcf_filtered+=1
+						self.no_het_snps_vcf_filtered+=1
 
 						#extract AF for selected region
 						if self.genotype_info_chrom_positions[snp][0] == selected_chrom and int(self.genotype_info_chrom_positions[snp][1])>=start and int(self.genotype_info_chrom_positions[snp][1])<=end:
@@ -190,11 +181,11 @@ def main():
 	
 	if not args.no_snp_filter:
 		#Extracting filter snps and uncalled positions
-		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_snps_vcf_filtered)+"\n")
+		print("\nTotal no. of heterozygous SNPs that pass the filtering criteria (a) >=20 total depth for position and (2) 0.20 <= allelic depth ratios <= 0.80: "+str(my_vcf.no_het_snps_vcf_filtered)+"\n")
 		print("Total no. of heterozygous SNPs for selected region: "+str(my_vcf.heterozygous_snps_selection_no)+"\n")
-		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
+		print("Percent of heterozygous SNPs that do not pass the filtering criteria: {percent_removed: .2f}%\n".format(percent_removed=((my_vcf.heterozygous_snps-my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100))
 	else:
-		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_snps_vcf_filtered))
+		print("No filtering of heterozygous SNPs performed: {percent_removed: .2f}%  of heterozygous SNPs will be used (n={no_used})".format(percent_removed=((my_vcf.no_het_snps_vcf_filtered)/my_vcf.heterozygous_snps)*100, no_used=my_vcf.no_het_snps_vcf_filtered))
 		print("Total no. of heterozygous SNPs for selected region: "+str(my_vcf.heterozygous_snps_selection_no)+"\n")
 	print("Finished processing VCF file!\n"+200*"-"+"\n")
 
@@ -210,7 +201,3 @@ def main():
 ########################################################################################################################################################################
 if __name__ == '__main__':
 	main()
-
-	
-
-
