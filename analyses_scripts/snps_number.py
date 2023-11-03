@@ -15,7 +15,7 @@ import os
 class Assembly_FASTA_SNP_NUMBER(Assembly_FASTA):
 
 	def __init__(self, filename):
-		Assembly_FASTA.__init__(self, filename)
+		super().__init__(filename)
 		self.chromosomes_windows=defaultdict(lambda: {})
 
 	def calculate_average_snp_values_chromosomes(self, bin_size, snps, uncalled):
