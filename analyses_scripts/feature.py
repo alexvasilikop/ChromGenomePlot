@@ -128,7 +128,7 @@ def main():
 	parser.add_argument("in_assembly", help="Genome assembly fasta used to make the annotations")
 	parser.add_argument("feature_1", help="CHROM coordinate file with annotated feature on the reference genome")
 	parser.add_argument("feature_1_name", help="Name of feature for plot label without spaces (e.g., coding_sequences, introns)")
-	parser.add_argument("out_plot", help="Output plot with feature content along chromosomes.")
+	parser.add_argument("out_plot", help="Output plot with feature content along chromosomes")
 	parser.add_argument("bin_size", help="Size of bins (bp) for plot (percent bases covered by feature plotted for each bin)/or number of features if --numbers")
 	parser.add_argument("species", help="Species name / sequencing library for title of the plot")
 	parser.add_argument('-sel_chrom', action='store', help="List of selected chromosomes to use (separated by \",\" without spaces, e.g.: \"chrom_1,chrom_2\" )")
