@@ -17,7 +17,7 @@ python3 chromgenomeplot.py cov_hist -h
 python3 chromgenomeplot.py cov_het -h
 python3 chromgenomeplot.py feature -h
 ```
-This will return the required positional (ordered arguments) for each analysis subtype. For example:
+This will return the help message and required positional (ordered arguments) for each analysis subtype. For example:
 ```
 python3 chromgenomeplot.py feature -h
 ```
