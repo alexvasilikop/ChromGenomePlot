@@ -11,9 +11,7 @@ git clone https://github.com/alexvasilikop/ChromGenomePlot.git
 cd ChromGenomePlot/
 python3 chromgenomeplot.py -h
 ```
-This will return all supported types of analysis.
-
-To print help message for specific analyses (some examples):
+This will return all currently supported types of analysis. To print help message for specific types of analyses type (some examples):
 ```
 python3 chromgenomeplot.py cov_hist -h
 python3 chromgenomeplot.py cov_het -h
