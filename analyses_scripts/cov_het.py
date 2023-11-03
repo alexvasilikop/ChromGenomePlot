@@ -11,7 +11,7 @@ import os
 
 # Plots coverage depth and SNP-based heterozygosity along chromosomes based on provided 1) BAM (sorted) and 2) VCF file (from GATK4)
 # The VCF file (output of GATK GenotypeGVCFS) has to be filtered to include only SNP variants (e.g. with GATK SelectVariants) -> further filtering of SNPs is done by the script
-# (sum of allelic depths min. = 20, allellic depth proportions >=0.20 and <=0.80)
+# (total depth min. = 20, allellic depth proportion >=0.20 and <=0.80)
 # If depths file has been generated in previous run it is automatically used (samtools depth -> step is skipped)
 # Coverage is printed as normalized to the maximum printed heterozygosity value on the y axis
 # A maximum value of % heterozygosity needs to be provided for the plot (e.g. a value of 10 means: 10% max. heterozygosity).
@@ -196,9 +196,15 @@ class VCF():
 
 					#Filter based on depth statistics (disable if --no_snp_filter flag is turned on)
 					if not no_snp_filter:
-						if snp_utilities.check_depth_criteria_het(ad1, ad2):
-							self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
-							self.no_het_snps_vcf_filtered+=1
+						if mode=="het":
+							if snp_utilities.check_depth_criteria_het(ad1, ad2):
+								self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
+								self.no_het_snps_vcf_filtered+=1
+						else:
+							#If it is not a calculation of heterozygosity filter based only on total allelic depth
+							if snp_utilities.check_allelic_depth_criteria(ad1, ad2):
+								self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
+								self.no_het_snps_vcf_filtered+=1
 
 					else:
 						self.positions_snps_filtered[self.genotype_info_chrom_positions[snp][0]].append(int(self.genotype_info_chrom_positions[snp][1]))
