@@ -11,7 +11,7 @@ import os
 
 # Plots coverage depth and SNP-based heterozygosity along chromosomes based on provided 1) BAM (sorted) and 2) VCF file (from GATK4)
 # The VCF file (output of GATK GenotypeGVCFS) has to be filtered to include only SNP variants (e.g. with GATK SelectVariants) -> further filtering of SNPs is done by the script
-# (total depth min. = 20, allellic depth proportion >=0.20 and <=0.80)
+# (sum of allelic depths min. = 20, allellic depth proportions >=0.20 and <=0.80)
 # If depths file has been generated in previous run it is automatically used (samtools depth -> step is skipped)
 # Coverage is printed as normalized to the maximum printed heterozygosity value on the y axis
 # A maximum value of % heterozygosity needs to be provided for the plot (e.g. a value of 10 means: 10% max. heterozygosity).
