@@ -68,7 +68,7 @@ The subdirectory ```analyses_scripts/``` and the ```chromgenomeplot.py``` script
 ## Input files
 Depending on the analysis type, the following input files may be required: 1) assembly fasta, 2) sorted BAM file of reads mapped onto the assembly, 3) Results of variant calling in VCF format that includes only SNPs (it should be in the format produced by GATK4, see below for more details), 4) Genome feature annotation in CHROM coordinate format (e.g., genes or repeats). 
 
-The CHROM format (required for feature-related functions) consists of 3 columns and is 1-based closed-end set of feature coordinates i.e., ```[start-pos, end-position]```. This in contrast to BED file which is zero-based open-end ```[start, end)```. It is better that the coordinates are sorted according to their start position. The chrom file can be extracted from a GFF3 file as follows by running:
+The CHROM format (required for feature-related functions) consists of three columns and is 1-based closed-end set of feature coordinates i.e., ```[start-pos, end-position]```. This in contrast to BED file which is zero-based open-end ```[start, end)```. It is better that the coordinates are sorted according to their start position. The chrom file can be extracted from a GFF3 file as follows by running:
 ```
 cut -f1,3,4,5 chrom.gff3 |while read scaf type start end;do echo -e "$scaf\t$start\t$end\t$type";done |grep "gene"
 
