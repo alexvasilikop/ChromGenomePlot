@@ -2,7 +2,7 @@
 ![Alt text](chromgenomeplot.svg)
 
 ## Description
-ChromGenomePlot is a command-line tool awritten in python that provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes (or scaffolds) of reference genome assemblies. It is primarily designed for analyzing highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
+ChromGenomePlot is a command-line tool written in python that provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes (or scaffolds) of reference genome assemblies. It is primarily designed for analyzing highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
 tools and functions from matplotlib, seaborn, pandas, numpy and other popular python libraries. It can plot and calculate overall percent heterozygosity, major allele frequency along chromosomes using windows of specified size (kb), major allele frequency spectra (MAF). It can also plot coverage depth, GC content and other feature content based on supplied CHROM coordinate files (i.e., feature coordinate files) along chromosomes/scaffolds using windows of specified length.
 
 ## Usage
@@ -63,7 +63,7 @@ optional arguments:
   --numbers             Use this flag to indicate numbers of features instead of coverage of bases in chromosome windows
 ```
 
-The subdirectory ```analyses_scripts/``` and the ```chromgenomeplot.py``` script should be in the current working directory (where the analysis is run). The script looks for the presence of the analysis scripts subdirectory in the current working directory and throws an error if it does not find it.
+The subdirectory ```analyses_scripts/``` and the ```chromgenomeplot.py``` script should be in the current working directory (where the analysis is run). The script looks for the presence of the analysis scripts subdirectory in the current working directory and throws an error if it does not find it. The tool has only been tested on Linux (Ubuntu v. 20)
 
 ## Input files
 Depending on the analysis type, the following input files may be required: 1) assembly fasta, 2) sorted BAM file of reads mapped onto the assembly, 3) Results of variant calling in VCF format that includes only SNPs (it should be in the format produced by GATK4, see below for more details), 4) Genome feature annotation in CHROM coordinate format (e.g., genes or repeats). 
