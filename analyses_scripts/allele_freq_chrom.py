@@ -35,9 +35,8 @@ def major_allelic_depth_ratio_average(start_window, p, chromosome, snps):
 class Assembly_FASTA_ALLELE_FREQ(Assembly_FASTA):
 
 	def __init__(self, filename):
+		super().__init__(filename)
 		self.chromosomes_windows_allelic_freq = defaultdict(lambda: {})
-		self.scaffolds_seqs = defaultdict(lambda: "")
-		self.filename = filename
 
 	def calculate_average_allelic_frequencies(self, bin_size, snps):
 
@@ -276,7 +275,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
-	
-
-
