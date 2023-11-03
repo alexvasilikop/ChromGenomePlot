@@ -75,7 +75,6 @@ def check_depth_criteria_het(ad1, ad2):
 ###################################################################################
 def check_allelic_depth_criteria(ad1,ad2):
 
-	''' Input: total depth for site'''
 	#Filter SNPS based on total depth (>=20)'''
 	if (ad1+ad2) >= 20 :
 		return True
