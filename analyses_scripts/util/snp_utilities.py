@@ -67,7 +67,7 @@ def average_no_snps_windows(chromosomes_positions_values, cov=True):
 ###################################################################################
 def check_depth_criteria_het(ad1, ad2):
 
-	if ((ad1+ad2) >= 20) and (((ad1/(ad1+ad2)) >= 0.20) or ((ad1/(ad1+ad2)) <= 0.80)):
+	if ((ad1+ad2) >= 20) and (((ad1/(ad1+ad2)) >= 0.20) and ((ad1/(ad1+ad2)) <= 0.80)):
 		return True
 	else:
 		return False
