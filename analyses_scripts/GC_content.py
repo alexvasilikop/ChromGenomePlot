@@ -162,9 +162,9 @@ def main():
 	print("Preparing the plot...")
 	my_plot = Plot(fig_name=args.out_plot)
 	my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows_coverage_numbers, \
-									  max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
-									  species=args.species, \
-									  no_fill=args.no_fill)
+				          max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+				          species=args.species, \
+					  no_fill=args.no_fill)
 	print("All done!")
 
 ########################################################################################################################################################################
