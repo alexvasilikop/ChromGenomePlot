@@ -9,7 +9,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import argparse
 
-#Plots dominant allele frequency distribution along chromosomes.
+#Plots dominant allele frequency distribution along chromosomes of the reference genome
 #############################################################################################""
 def major_allelic_depth_ratio_average(start_window, p, chromosome, snps):
 
@@ -56,7 +56,6 @@ class Assembly_FASTA_ALLELE_FREQ(Assembly_FASTA):
 				if (p+1)%bin_size==0:
 
 					average_allelic_freq = major_allelic_depth_ratio_average(start_window, p+1, chromosome, snps)
-
 					#add snp percent of start position
 					self.chromosomes_windows_allelic_freq[chromosome][start_window] = (average_allelic_freq)
 					#add snp percent of end position
@@ -133,7 +132,6 @@ class VCF_AF(VCF):
 				exit(1)
 
 ###############################################################################################################################################################################
-
 class Plot_ALLELE_FREQUENCY(Plot_SNP_NUMBER):
 
 	def plot_allele_freq_chromosomes(self, allele_freq, max_len, species, no_fill):
@@ -263,15 +261,15 @@ def main():
 	print("Preparing the plot...")
 	my_plot = Plot_ALLELE_FREQUENCY(fig_name=args.out_plot)
 	my_plot.plot_allele_freq_chromosomes(allele_freq=my_assembly.chromosomes_windows_allelic_freq, \
-									     max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
-									     species=args.species, \
-									     no_fill=args.no_fill)
+					     max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+					     species=args.species, \
+					     no_fill=args.no_fill)
 
 	print("Average Heterozygosity (average %  of heterozygous SNPs in windows):")
 	av_het=snp_utilities.average_heterozygosity(snps=my_vcf.positions_snps_filtered, uncalled=my_vcf.positions_uncalled_for_plotting, genome_size=sum(len(v) for v in my_assembly.scaffolds_seqs.values()))
 	print(f"{av_het:.2f}%")
 	print("All done!\n"+200*"-"+"\n")
-########################################################################################################################################################################
 
+########################################################################################################################################################################
 if __name__ == '__main__':
 	main()
