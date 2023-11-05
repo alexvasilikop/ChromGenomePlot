@@ -11,7 +11,6 @@ import numpy as np
 ###########################################################################################################################################################################################################################
 # Plots one feature along chromosomes (e.g. gene content or repetitive content) using CHROM files of annotations (each CHROM annotation must contain sorted annotations by genome position)
 ##############################################################################################################################################################################################################
-
 class CHROMfile():
 
 	def __init__(self, filename):
@@ -164,22 +163,22 @@ def main():
 	my_plot = Plot(fig_name=args.out_plot)
 	if not args.numbers:
 		my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows_coverage_numbers, \
-								          max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
-									      label_1=args.feature_1_name, \
-									      species=args.species, \
-									      no_fill=args.no_fill, \
-									      bin_size=args.bin_size, \
-									      mode_numbers=args.numbers)
+						  max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+						  label_1=args.feature_1_name, \
+						  species=args.species, \
+						  no_fill=args.no_fill, \
+						  bin_size=args.bin_size, \
+						  mode_numbers=args.numbers)
 		print("\n## Average base coverage of feature in each chromosome window: {percent:.2f} % ##\n".format(percent=np.mean(feature_utils.coverage_or_numbers_per_window(my_assembly.chromosomes_windows_coverage_numbers, args.numbers))))
 
 	else:
 		my_plot.plot_features_chromosomes(features_chroms=my_assembly.chromosomes_windows_coverage_numbers, \
-								          max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
-									      label_1=args.feature_1_name, \
-									      species=args.species, \
-									      no_fill=args.no_fill,
-									      bin_size=args.bin_size, \
-									      mode_numbers=args.numbers)
+						  max_len=max([len(seq) for seq in my_assembly.scaffolds_seqs.values()]), \
+						  label_1=args.feature_1_name, \
+						  species=args.species, \
+						  no_fill=args.no_fill,
+						  bin_size=args.bin_size, \
+						  mode_numbers=args.numbers)
 		print("\n## Average number of features in each chromosome window {percent:.2f} ##\n".format(percent=np.mean(feature_utils.coverage_or_numbers_per_window(my_assembly.chromosomes_windows_coverage_numbers, args.numbers))))
 
 	print("All done!")
