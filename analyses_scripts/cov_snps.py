@@ -224,12 +224,12 @@ def main():
 	my_plot = Plot(fig_name=args.out_plot)
 
 	my_plot.plot_coverage_heterozygosity_chromosomes(snps_and_depths=my_alignment.chromosomes_windows_depths_snps,  \
-												     max_snp_percent=int(args.max_snp_percent), \
-		                                             average_depth= my_alignment.average_depth, \
-		                                             species=args.species, \
-		                                             chrom_lengths=my_alignment.chromosome_lengths, \
-		                                             no_fill=args.no_fill, \
-		                                             no_avg_cov=args.no_avg_cov)
+						         max_snp_percent=int(args.max_snp_percent), \
+		                                         average_depth= my_alignment.average_depth, \
+		                                         species=args.species, \
+		                                         chrom_lengths=my_alignment.chromosome_lengths, \
+		                                         no_fill=args.no_fill, \
+		                                         no_avg_cov=args.no_avg_cov)
 
 	print("All done!\n"+200*"-"+"\n")
 
