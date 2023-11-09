@@ -2,7 +2,7 @@
 ![Alt text](chromgenomeplot.svg)
 
 ## Description
-ChromGenomePlot is a command-line tool written in python 3 that provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes (or scaffolds) of reference genome assemblies. It is primarily designed to analye highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
+ChromGenomePlot is a command-line tool written in python 3 that provides a set of functions for analysis and visualization of diverse genomic features along the chromosomes (or scaffolds) of reference genome assemblies. It is primarily designed to analyze highly contiguous (few scaffolds) or chromosome-level reference genome assemblies. It leverages 
 tools and functions from matplotlib, seaborn, pandas, numpy and other popular python libraries. It can plot and calculate overall percent heterozygosity, major allele frequency along chromosomes using windows of specified size (kb) as well as major allele frequency spectra (MAF). It can also plot coverage depth, GC content and other feature content based on supplied CHROM coordinate files (i.e., feature coordinate files) along chromosomes/scaffolds using chromosome windows of specified length.
 
 ## Usage
